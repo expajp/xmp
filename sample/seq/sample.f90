@@ -16,33 +16,11 @@ program sample
   real :: y(mimax,mjmax,mkmax)
 
 ! Variables for XMP
-  integer :: myrank, xmp_node_num
-  integer :: nprocs, xmp_all_num_nodes
-  integer :: kstart, kend
-  double precision :: xmp_wtime, cpu0, cpu1, cpu2
-
-! XMP directives
-  !$xmp nodes n(*)
-  !$xmp template t(mkmax)
-  !$xmp distribute t(block) onto n
-  !$xmp align (*,*,k) with t(k) :: x, y
-  !$xmp shadow x(0,0,1)
-
-  myrank = xmp_node_num()
-  nprocs = xmp_all_num_nodes()
-
-  kstart = mkmax*myrank/nprocs+1
-  kend = mkmax*(myrank+1)/nprocs
+  integer :: cpu0, cpu1, cpu2, t_rate, t_max, diff
 
 ! initialize array
-  cpu0 = xmp_wtime()
+  call system_clock(cpu0)
 
-  !!$xmp task on n(1)
-! write(*,'(A,i3)') 'nprocs = ',nprocs
-  !!$xmp end task
-
-  !$xmp reflect (x)
-  !$xmp loop on t(k)
   do k=1, mkmax
      do j=1, mjmax
         do i=1, mimax
@@ -52,15 +30,10 @@ program sample
      end do
   end do
 
-    !write(*,'(A,i3,A)') 'The initialization of rank ',myrank,' was over.'
-
-    !$xmp barrier
-    cpu1 = xmp_wtime()
+    call system_clock(cpu1)
 
 ! main loop
 
-  !$xmp reflect (x)
-  !$xmp loop on t(k)
   do k=1, mkmax
      do j=2, mjmax-1
         do i=2, mimax-1
@@ -82,23 +55,19 @@ program sample
      end do
   end do
   
-  !for debug
-  !cpu2 = xmp_wtime()
-  !write(*,'(A,i3,A)') 'Rank', myrank, ', finished.'
+  call system_clock(cpu2, t_rate, t_max)
+  if ( cpu2 < cpu0 ) then
+    diff = t_max - cpu0 + cpu2
+  else
+    diff = cpu2 - cpu0
+  endif
 
-  !$xmp barrier
-  cpu2 = xmp_wtime()
-
-  if(myrank == 1) then
 !     write(*,*)
 !     write(*,*) 'The time was counted.'
 !     write(*,'(A,f8.5)') 'Initialize (s): ',cpu1-cpu0
 !     write(*,'(A,f8.5)') 'Caliculate (s): ',cpu2-cpu1
 !     write(*,'(A,f8.5)') 'Total (s): ',cpu2-cpu0
 !     write(*,*)
-     write(*,'(f9.6)') cpu2-cpu0
-  end if
-
-  !There is no directive to finalize XMP
+     write(*,'(f9.6)') (cpu2-cpu0)/dble(t_rate)
 
 end program sample

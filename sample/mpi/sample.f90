@@ -1,24 +1,26 @@
 module sample_size
+  implicit none
 
-  integer, PARAMETER :: mimax=256, mjmax=128, mkmax=128
+  integer, PARAMETER :: mimax=1024, mjmax=512, mkmax=512
 
 end module sample_size
 
 program sample
-
   use sample_size
   use mpi
+  implicit none
 
 ! Set Variables and Arrays
   integer :: i, j, k
 
-  real :: x(mimax,mjmax,mkmax+1)
-  real :: y(mimax,mjmax,mkmax+1)
+  real :: x(mimax,mjmax,mkmax)
+  real :: y(mimax,mjmax,mkmax)
 
-! initialize for MPI
+! Variables for MPI
   integer :: myrank, nprocs, ierr
   integer :: kstart, kend, m
   integer :: leftnode, rightnode
+  real(8) :: cpu0, cpu1, cpu2
   integer, dimension(MPI_STATUS_SIZE) :: istat ! for sendrecv
 
   call mpi_init(ierr)
@@ -26,10 +28,9 @@ program sample
   call mpi_comm_rank(MPI_COMM_WORLD, myrank, ierr)
 
 ! initialize Variables for parallel
-
-  kstart = mkmax*(myrank/nprocs)+1
-  kend = mkmax*((myrank+1)/nprocs)
-  m = mimax*mjmax*mkmax/nprocs
+  kstart = mkmax*myrank/nprocs+1
+  kend = mkmax*(myrank+1)/nprocs
+  m = mimax*mjmax
 
   if(myrank == 0) then
      leftnode = MPI_PROC_NULL
@@ -43,9 +44,8 @@ program sample
      rightnode = myrank+1
   end if
 
-
-
 ! initialize array
+  cpu0 = MPI_Wtime()
 
   do k=kstart, kend
      do j=1, mjmax
@@ -58,22 +58,17 @@ program sample
 
 ! exchange values
 
-!  call mpi_sendrecv(x(:,:,kstart), m, MPI_DOUBLE_PRECISION, leftnode, 100, &
-!       x(:,:,kend+1), m, MPI_DOUBLE_PRECISION, rightnode, 100, &
-!       MPI_COMM_WORLD, istat, ierr)
+  call mpi_sendrecv(x(1,1,kstart), m, MPI_REAL, leftnode, 100, &
+       x(1,1,kend+1), m, MPI_REAL, rightnode, 100, &
+       MPI_COMM_WORLD, istat, ierr)
 
-!  call mpi_sendrecv(x(:,:,kend), m, MPI_DOUBLE_PRECISION, rightnode, 100, &
-!       x(:,:,kstart-1), m, MPI_DOUBLE_PRECISION, leftnode, 100, &
-!       MPI_COMM_WORLD, istat, ierr)
+  call mpi_sendrecv(x(1,1,kend), m, MPI_REAL, rightnode, 100, &
+       x(1,1,kstart-1), m, MPI_REAL, leftnode, 100, &
+       MPI_COMM_WORLD, istat, ierr)
 
 ! introduction
-
-     write(*,'(A,i2,A)') 'The initialization of rank ',myrank,' was over.'
-
-  if(myrank == 0) then
-     write(*,*) 'Print only such matters that &
-          the product of its i, j, and k is the multiple of 3^12'
-  end if
+    call MPI_Barrier(MPI_COMM_WORLD, ierr)
+    cpu1 = MPI_Wtime()
 
 ! main loop
 
@@ -81,10 +76,16 @@ program sample
      do j=2, mjmax-1
         do i=2, mimax-1
            ! substitute to y
-              y(i, j, k) = x(i-1, j-1, k) + x(i+1, j+1, k)
+           if(kstart == 1) then
+              y(i, j, k) = x(i+1, j+1, k+1)
+           else if(kend == mkmax) then
+              y(i, j, k) = x(i-1, j-1, k-1)
+           else
+              y(i, j, k) = x(i-1, j-1, k-1) + x(i+1, j+1, k+1)
+           end if
 
            ! output
-           if(mod(i*j*k,3**12) == 0) then
+           if(i == 2 .and. j == 2 .and. k == kstart) then
               write(*,'(A,3(i3,A),f5.1)') 'y(', i, ',', j, ',', k, ') = ',y(i, j, k)
            end if
 
@@ -92,7 +93,22 @@ program sample
      end do
   end do
   
-  write(*,'(A,i2,A)') 'Rank', myrank, ', finished.'
+  !for debug
+  !cpu2 = MPI_Wtime()
+  !write(*,'(A,i3,A,f8.5,A)') 'Rank', myrank, ', finished in ', cpu2 - cpu0, 'sec.'
+
+  call MPI_Barrier(MPI_COMM_WORLD, ierr)
+  cpu2 = MPI_Wtime()
+
+  if(myrank == 0) then
+     write(*,*)
+     write(*,*) 'The time was counted.'
+     write(*,'(A,f8.5)') 'Initialize (s): ',cpu1-cpu0
+     write(*,'(A,f8.5)') 'Caliculate (s): ',cpu2-cpu1
+     write(*,'(A,f8.5)') 'Total (s): ',cpu2-cpu0
+     write(*,*)
+!     write(*,'(f9.6)') cpu2-cpu0 ! for descripting a graph
+  end if
 
 ! finalize MPI variables
   call mpi_finalize(ierr)

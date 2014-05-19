@@ -10,6 +10,7 @@
          do  100  ip = 1, lm
             bmax  =  max( bmax, abs( b(ip,k) ) )
  100  continue
+
       
       res  =  0.0d0
       do  110  k = 1, n
@@ -25,6 +26,8 @@
      &                     - coef(ip,7,k)*x(ix  , kp+1)
           res   =  max( res, abs(rtmp) )
  110  continue
+
+
       if( bmax .ne. 0.0 )   res = res / bmax
 
       if( res .lt. eps )  then

@@ -1,14 +1,14 @@
       module himeno_params
 
-!      PARAMETER (mimax = 512, mjmax = 256, mkmax = 256)
-      PARAMETER (mimax = 256, mjmax = 128, mkmax = 128)
+      PARAMETER (mimax = 512, mjmax = 256, mkmax = 256)
+!      PARAMETER (mimax = 256, mjmax = 128, mkmax = 128)
 !      PARAMETER (mimax = 128, mjmax = 64, mkmax = 64)
 !      PARAMETER (mimax = 64, mjmax = 32, mkmax = 32)
 
 !     ttarget specifys the measuring period in sec
       PARAMETER (ttarget = 60.0)
 
-      end module himeno_params
+      end module himeno_size
 
       program himeno
 
@@ -22,7 +22,7 @@
       real bnd(mimax,mjmax,mkmax)
       real wrk1(mimax,mjmax,mkmax), wrk2(mimax,mjmax,mkmax)
 
-!$xmp nodes n(2,2)
+!$xmp nodes n(4,4)
 !$xmp template t(mimax,mjmax,mkmax)
 !$xmp distribute t(*,block,block) onto n
 !$xmp align (*,j,k) with t(*,j,k) :: p, bnd, wrk1, wrk2
@@ -120,7 +120,7 @@
       real bnd(mimax,mjmax,mkmax)
       real wrk1(mimax,mjmax,mkmax), wrk2(mimax,mjmax,mkmax)
 
-!$xmp nodes n(2,2)
+!$xmp nodes n(4,4)
 !$xmp template t(mimax,mjmax,mkmax)
 !$xmp distribute t(*,block,block) onto n
 !$xmp align (*,j,k) with t(*,j,k) :: p, bnd, wrk1, wrk2
@@ -168,7 +168,7 @@
       real bnd(mimax,mjmax,mkmax)
       real wrk1(mimax,mjmax,mkmax), wrk2(mimax,mjmax,mkmax)
 
-!$xmp nodes n(2,2)
+!$xmp nodes n(4,4)
 !$xmp template t(mimax,mjmax,mkmax)
 !$xmp distribute t(*,block,block) onto n
 !$xmp align (*,j,k) with t(*,j,k) :: p, bnd, wrk1, wrk2

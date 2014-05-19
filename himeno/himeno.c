@@ -77,8 +77,8 @@ void initmt();
 double fflop(int,int,int);
 double mflops(int,double,double);
 
-/* int xmp_node_num();
-   double xmp_wtime(); */
+int xmp_node_num();
+double xmp_wtime();
 
 static float  p[MIMAX][MJMAX][MKMAX];
 static float  a[4][MIMAX][MJMAX][MKMAX],
@@ -88,7 +88,7 @@ static float  bnd[MIMAX][MJMAX][MKMAX];
 static float  wrk1[MIMAX][MJMAX][MKMAX],
               wrk2[MIMAX][MJMAX][MKMAX];
 
-#pragma xmp nodes n(2,2)
+#pragma xmp nodes n(4,2)
 #pragma xmp template t(0:256-1,0:256-1)
 #pragma xmp distribute t(block,block) onto n
 #pragma xmp align p[i][j][*] with t(i,j)
