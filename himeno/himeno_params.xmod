@@ -1,0 +1,29 @@
+<OmniFortranModule version="1.0">
+  <name>himeno_params</name>
+  <depends>
+  </depends>
+  <typeTable>
+    <FbasicType type="I1297be0" is_parameter="true" ref="Fint"/>
+    <FbasicType type="I1297c80" is_parameter="true" ref="Fint"/>
+    <FbasicType type="I1297d20" is_parameter="true" ref="Fint"/>
+    <FbasicType type="R1297dc0" is_parameter="true" ref="Freal"/>
+  </typeTable>
+  <identifiers>
+    <id type="I1297be0" sclass="flocal" original_name="mimax" declared_in="himeno_params">
+      <name>mimax</name>
+    </id>
+    <id type="I1297c80" sclass="flocal" original_name="mjmax" declared_in="himeno_params">
+      <name>mjmax</name>
+    </id>
+    <id type="I1297d20" sclass="flocal" original_name="mkmax" declared_in="himeno_params">
+      <name>mkmax</name>
+    </id>
+    <id type="R1297dc0" sclass="flocal" original_name="ttarget" declared_in="himeno_params">
+      <name>ttarget</name>
+    </id>
+  </identifiers>
+  <interfaceDecls>
+  </interfaceDecls>
+  <aux_info>
+  </aux_info>
+</OmniFortranModule>
