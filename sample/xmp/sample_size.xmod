@@ -3,18 +3,18 @@
   <depends>
   </depends>
   <typeTable>
-    <FbasicType type="I21cd130" is_parameter="true" ref="Fint"/>
-    <FbasicType type="I21cd5e0" is_parameter="true" ref="Fint"/>
-    <FbasicType type="I21cda90" is_parameter="true" ref="Fint"/>
+    <FbasicType type="Iaf9130" is_parameter="true" ref="Fint"/>
+    <FbasicType type="Iaf95e0" is_parameter="true" ref="Fint"/>
+    <FbasicType type="Iaf9a90" is_parameter="true" ref="Fint"/>
   </typeTable>
   <identifiers>
-    <id type="I21cd130" sclass="flocal" original_name="mimax" declared_in="sample_size">
+    <id type="Iaf9130" sclass="flocal" original_name="mimax" declared_in="sample_size">
       <name>mimax</name>
     </id>
-    <id type="I21cd5e0" sclass="flocal" original_name="mjmax" declared_in="sample_size">
+    <id type="Iaf95e0" sclass="flocal" original_name="mjmax" declared_in="sample_size">
       <name>mjmax</name>
     </id>
-    <id type="I21cda90" sclass="flocal" original_name="mkmax" declared_in="sample_size">
+    <id type="Iaf9a90" sclass="flocal" original_name="mkmax" declared_in="sample_size">
       <name>mkmax</name>
     </id>
   </identifiers>
