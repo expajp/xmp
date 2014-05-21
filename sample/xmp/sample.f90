@@ -9,91 +9,82 @@ program sample
   use sample_size
   implicit none
 
-! Set Variables and Arrays
+! Set Variables
   integer :: i, j, k
-
-  real :: x(mimax,mjmax,mkmax)
-  real :: y(mimax,mjmax,mkmax)
 
 ! Variables for XMP
   integer :: myrank, xmp_node_num
-  integer :: nprocs, xmp_all_num_nodes
-  integer :: kstart, kend
   double precision :: xmp_wtime, cpu0, cpu1, cpu2
 
+! Set Arrays
+  real :: x(mimax,mjmax,0:mkmax+1)
+  real :: y(mimax,mjmax,0:mkmax+1)
+
 ! XMP directives
-  !$xmp nodes n(*)
-  !$xmp template t(mkmax)
-  !$xmp distribute t(block) onto n
-  !$xmp align (*,*,k) with t(k) :: x, y
-  !$xmp shadow x(0,0,1)
+!$xmp nodes n(1,1,*)
+!$xmp template t(mimax, mjmax, 0:mkmax+1)
+!$xmp distribute t(block,block,block) onto n
+!$xmp align (i,j,k) with t(i,j,k) :: x, y
+!$xmp shadow x(0,0,1)
+
+  x = 0.0
+  y = 0.0
 
   myrank = xmp_node_num()
-  nprocs = xmp_all_num_nodes()
 
-  kstart = mkmax*myrank/nprocs+1
-  kend = mkmax*(myrank+1)/nprocs
-
-! initialize array
+! --- count start --- !
   cpu0 = xmp_wtime()
 
-  !$xmp reflect (x)
-  !$xmp loop on t(k)
+! initialize array
+
+!$xmp loop on t(*,*,k)
   do k=1, mkmax
+!$xmp loop on t(*,j,*)
      do j=1, mjmax
+!$xmp loop on t(i,*,*)
         do i=1, mimax
            x(i, j, k) = i + j + k
-           y(i, j, k) = 0
         end do
      end do
   end do
 
-! introduction
-    !$xmp barrier
-    cpu1 = xmp_wtime()
+
+! message transfer
+!$xmp reflect (x)
+
+! --- count split 01 --- !
+  cpu1 = xmp_wtime()
 
 ! main loop
 
-  !$xmp reflect (x)
-  !$xmp loop on t(k)
+!$xmp loop on t(*,*,k)
   do k=1, mkmax
-     do j=2, mjmax-1
-        do i=2, mimax-1
-           ! substitute to y
-           if(k == 1) then
-              y(i, j, k) = x(i+1, j+1, k+1)
-           else if(k == mkmax) then
-              y(i, j, k) = x(i-1, j-1, k-1)
-           else
-              y(i, j, k) = x(i-1, j-1, k-1) + x(i+1, j+1, k+1)
-           end if
+!$xmp loop on t(*,j,*)
+     do j=1, mjmax
+!$xmp loop on t(i,*,*)
+        do i=1, mimax
 
-           ! output
-           if(i == 2 .and. j == 2 .and. mod(k,mkmax/nprocs) == 1) then
-              write(*,'(A,3(i3,A),f5.1)') 'y(', i, ',', j, ',', k, ') = ',y(i, j, k)
-           end if
+           ! substitute to y
+           y(i, j, k) = x(i, j, k-1) + x(i, j, k+1)
+
+           ! output for debug
+           !if(mod(i*j*k,3**15) == 0) then
+           !   write(*,'(A,3(i3,A),f7.1)') 'y(', i, ',', j, ',', k, ') = ',y(i, j, k)
+           !end if
 
         end do
      end do
   end do
-  
-  !for debug
-  !cpu2 = xmp_wtime()
-  !write(*,'(A,i3,A)') 'Rank', myrank, ', finished.'
 
-  !$xmp barrier
+! --- count stop --- !
   cpu2 = xmp_wtime()
 
-  if(myrank == 1) then
-     write(*,*)
-     write(*,*) 'The time was counted.'
-     write(*,'(A,f8.5)') 'Initialize (s): ',cpu1-cpu0
-     write(*,'(A,f8.5)') 'Caliculate (s): ',cpu2-cpu1
-     write(*,'(A,f8.5)') 'Total (s): ',cpu2-cpu0
-     write(*,*)
-!     write(*,'(f9.6)') cpu2-cpu0 ! for descripting a graph
-  end if
-
-  !There is no directive to finalize XMP
+! output
+if(myrank == 1) then
+  write(*,'(A,f8.5)') 'Initialize (s): ',cpu1-cpu0
+  write(*,'(A,f8.5)') 'Caliculate (s): ',cpu2-cpu1
+  write(*,'(A,f8.5)') 'Total (s): ',cpu2-cpu0
+! write(*,'(f9.6)') cpu2-cpu0 ! for descripting a graph
+end if
 
 end program sample
