@@ -21,7 +21,7 @@ program sample
   real :: y(mimax,mjmax,0:mkmax+1)
 
 ! XMP directives
-!$xmp nodes n(2,2,2)
+!$xmp nodes n(1,1,*)
 !$xmp template t(mimax, mjmax, 0:mkmax+1)
 !$xmp distribute t(block,block,block) onto n
 !$xmp align (i,j,k) with t(i,j,k) :: x, y
@@ -36,6 +36,7 @@ program sample
   cpu0 = xmp_wtime()
 
 ! initialize array
+
 !$xmp loop on t(*,*,k)
   do k=1, mkmax
 !$xmp loop on t(*,j,*)
@@ -52,6 +53,7 @@ program sample
 !$xmp reflect (x)
 
 ! --- count split 01 --- !
+  cpu1 = xmp_wtime()
 
 ! main loop
 
@@ -66,24 +68,23 @@ program sample
            y(i, j, k) = x(i, j, k-1) + x(i, j, k+1)
 
            ! output for debug
-           if(mod(i*j*k,3**15) == 0) then
-              write(*,'(A,3(i3,A),f7.1)') 'y(', i, ',', j, ',', k, ') = ',y(i, j, k)
-           end if
+           !if(mod(i*j*k,3**15) == 0) then
+           !   write(*,'(A,3(i3,A),f7.1)') 'y(', i, ',', j, ',', k, ') = ',y(i, j, k)
+           !end if
 
         end do
      end do
   end do
 
 ! --- count stop --- !
+  cpu2 = xmp_wtime()
 
 ! output
 if(myrank == 1) then
-!  write(*,*)
-  write(*,*) 'The time was counted.'
-!  write(*,'(A,f8.5)') 'Initialize (s): ',cpu1-cpu0
-!  write(*,'(A,f8.5)') 'Caliculate (s): ',cpu2-cpu1
-!  write(*,'(A,f8.5)') 'Total (s): ',cpu2-cpu0
-!  write(*,*)
+  write(*,'(A,f8.5)') 'Initialize (s): ',cpu1-cpu0
+  write(*,'(A,f8.5)') 'Caliculate (s): ',cpu2-cpu1
+  write(*,'(A,f8.5)') 'Total (s): ',cpu2-cpu0
+! write(*,'(f9.6)') cpu2-cpu0 ! for descripting a graph
 end if
 
 end program sample
