@@ -13,13 +13,11 @@ program sample
   integer :: i, j, k
 
 ! Variables for XMP
-  integer :: cpu0, cpu1, cpu2, t_rate, t_max, diff
+! integer :: cpu0, cpu1, cpu2, t_rate, t_max, diff
 
 ! Set Arrays
-  real :: x(mimax,mjmax,0:mkmax+1)
-  real :: y(mimax,mjmax,0:mkmax+1)
-
-  x = y = 0.0
+  real :: x(mimax,mjmax,0:mkmax+1) = 0.0
+  real :: y(mimax,mjmax,0:mkmax+1) = 0.0
 
 ! --- count start --- !
 
@@ -45,7 +43,9 @@ program sample
            y(i, j, k) = x(i, j, k-1) + x(i, j, k+1)
 
            ! output for debug
-           ! write(*,'(A,3(i3,A),f5.1)') 'y(', i, ',', j, ',', k, ') = ',y(i, j, k)
+           if(mod(i*j*k,3**15) == 0) then
+              write(*,'(A,3(i3,A),f7.1)') 'y(', i, ',', j, ',', k, ') = ',y(i, j, k)
+           end if
 
         end do
      end do
@@ -54,11 +54,11 @@ program sample
 ! --- count stop --- !
 
 ! output
-  write(*,*)
+!  write(*,*)
   write(*,*) 'The time was counted.'
-  write(*,'(A,f8.5)') 'Initialize (s): ',cpu1-cpu0
-  write(*,'(A,f8.5)') 'Caliculate (s): ',cpu2-cpu1
-  write(*,'(A,f8.5)') 'Total (s): ',cpu2-cpu0
-  write(*,*)
+!  write(*,'(A,f8.5)') 'Initialize (s): ',cpu1-cpu0
+!  write(*,'(A,f8.5)') 'Caliculate (s): ',cpu2-cpu1
+!  write(*,'(A,f8.5)') 'Total (s): ',cpu2-cpu0
+!  write(*,*)
 
 end program sample
