@@ -3,22 +3,22 @@
   <depends>
   </depends>
   <typeTable>
-    <FbasicType type="I1297be0" is_parameter="true" ref="Fint"/>
-    <FbasicType type="I1297c80" is_parameter="true" ref="Fint"/>
-    <FbasicType type="I1297d20" is_parameter="true" ref="Fint"/>
-    <FbasicType type="R1297dc0" is_parameter="true" ref="Freal"/>
+    <FbasicType type="I24bc5d0" is_parameter="true" ref="Fint"/>
+    <FbasicType type="I24bc670" is_parameter="true" ref="Fint"/>
+    <FbasicType type="I24bc710" is_parameter="true" ref="Fint"/>
+    <FbasicType type="R24bc7b0" is_parameter="true" ref="Freal"/>
   </typeTable>
   <identifiers>
-    <id type="I1297be0" sclass="flocal" original_name="mimax" declared_in="himeno_params">
+    <id type="I24bc5d0" sclass="flocal" original_name="mimax" declared_in="himeno_params">
       <name>mimax</name>
     </id>
-    <id type="I1297c80" sclass="flocal" original_name="mjmax" declared_in="himeno_params">
+    <id type="I24bc670" sclass="flocal" original_name="mjmax" declared_in="himeno_params">
       <name>mjmax</name>
     </id>
-    <id type="I1297d20" sclass="flocal" original_name="mkmax" declared_in="himeno_params">
+    <id type="I24bc710" sclass="flocal" original_name="mkmax" declared_in="himeno_params">
       <name>mkmax</name>
     </id>
-    <id type="R1297dc0" sclass="flocal" original_name="ttarget" declared_in="himeno_params">
+    <id type="R24bc7b0" sclass="flocal" original_name="ttarget" declared_in="himeno_params">
       <name>ttarget</name>
     </id>
   </identifiers>
