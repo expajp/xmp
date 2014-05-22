@@ -1,0 +1,20 @@
+1 process(es):
+Initialize (s):  0.5390307
+Caliculate (s):  0.0000039
+Total (s):  0.5390346
+
+2 process(es):
+Initialize (s):  0.2745906
+Caliculate (s):  0.0000236
+Total (s):  0.2746142
+
+4 process(es):
+Initialize (s):  0.1389124
+Caliculate (s):  0.0000069
+Total (s):  0.1389193
+
+8 process(es):
+Initialize (s):  0.0715385
+Caliculate (s):  0.0000072
+Total (s):  0.0715457
+

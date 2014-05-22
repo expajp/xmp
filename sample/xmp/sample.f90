@@ -14,6 +14,7 @@ program sample
 
 ! Variables for XMP
   integer :: myrank, xmp_node_num
+  integer :: nprocs, xmp_all_num_nodes
   double precision :: xmp_wtime, cpu0, cpu1, cpu2
 
 ! Set Arrays
@@ -31,6 +32,7 @@ program sample
   y = 0.0
 
   myrank = xmp_node_num()
+  nprocs = xmp_all_num_nodes()
 
 ! --- count start --- !
 !$xmp barrier
@@ -79,10 +81,10 @@ program sample
 
 ! output
 if(myrank == 1) then
-  write(*,'(A,f10.7)') 'Initialize (s): ',cpu1-cpu0
-  write(*,'(A,f10.7)') 'Caliculate (s): ',cpu2-cpu1
-  write(*,'(A,f10.7)') 'Total (s): ',cpu2-cpu0
-! write(*,'(f9.6)') cpu2-cpu0 ! for descripting a graph
+!  write(*,'(A,f10.7)') 'Initialize (s): ',cpu1-cpu0
+!  write(*,'(A,f10.7)') 'Caliculate (s): ',cpu2-cpu1
+!  write(*,'(A,f10.7)') 'Total (s): ',cpu2-cpu0
+  write(*,'(i3,X,3(f9.6,X))') nprocs, cpu1-cpu0, cpu2-cpu1, cpu2-cpu0 ! for descripting a graph
 end if
 
 end program sample

@@ -97,17 +97,20 @@ program sample
      end do
   end do
 
+
 ! --- count stop --- !
   call MPI_Barrier(MPI_COMM_WORLD, ierr)
   cpu2 = MPI_Wtime()
 
+! to protect a compiler to remove for-loop
+  write(*, *) y(mimax, mjmax, kend)
 
 ! output
 if(myrank == 0) then
-  write(*,'(A,f10.7)') 'Initialize (s): ',cpu1-cpu0
-  write(*,'(A,f10.7)') 'Caliculate (s): ',cpu2-cpu1
-  write(*,'(A,f10.7)') 'Total (s): ',cpu2-cpu0
-! write(*,'(f9.6)') cpu2-cpu0 ! for descripting a graph
+!  write(*,'(A,f10.7)') 'Initialize (s): ',cpu1-cpu0
+!  write(*,'(A,f10.7)') 'Caliculate (s): ',cpu2-cpu1
+!  write(*,'(A,f10.7)') 'Total (s): ',cpu2-cpu0
+  write(*,'(i3,X,3(f9.6,X))') nprocs, cpu1-cpu0, cpu2-cpu1, cpu2-cpu0 ! for descripting a graph
 end if
 
 ! finalize MPI
