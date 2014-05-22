@@ -33,6 +33,7 @@ program sample
   myrank = xmp_node_num()
 
 ! --- count start --- !
+!$xmp barrier
   cpu0 = xmp_wtime()
 
 ! initialize array
@@ -53,6 +54,7 @@ program sample
 !$xmp reflect (x)
 
 ! --- count split 01 --- !
+!$xmp barrier
   cpu1 = xmp_wtime()
 
 ! main loop
@@ -77,6 +79,7 @@ program sample
   end do
 
 ! --- count stop --- !
+!$xmp barrier
   cpu2 = xmp_wtime()
 
 ! output

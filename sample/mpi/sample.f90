@@ -10,11 +10,8 @@ program sample
   use mpi
   implicit none
 
-! Set Variables and Arrays
+! Set Variables
   integer :: i, j, k
-
-  real :: x(mimax,mjmax,mkmax)
-  real :: y(mimax,mjmax,mkmax)
 
 ! Variables for MPI
   integer :: myrank, nprocs, ierr
@@ -23,6 +20,11 @@ program sample
   real(8) :: cpu0, cpu1, cpu2
   integer, dimension(MPI_STATUS_SIZE) :: istat ! for sendrecv
 
+! Set Allocatable Arrays
+  real, dimension(:, :, :), allocatable :: x
+  real, dimension(:, :, :), allocatable :: y
+
+! initialize MPI
   call mpi_init(ierr)
   call mpi_comm_size(MPI_COMM_WORLD, nprocs, ierr)
   call mpi_comm_rank(MPI_COMM_WORLD, myrank, ierr)
@@ -44,19 +46,27 @@ program sample
      rightnode = myrank+1
   end if
 
-! initialize array
+! Allocate and Initialize Arrays
+  allocate(x(mimax, mjmax, kstart-1:kend+1))
+  allocate(y(mimax, mjmax, kstart-1:kend+1))
+
+  x = 0.0
+  y = 0.0
+
+! --- count start --- !
+  call MPI_Barrier(MPI_COMM_WORLD, ierr)
   cpu0 = MPI_Wtime()
 
-  do k=kstart, kend
+! initialize array
+  do k=kstart-1, kend+1
      do j=1, mjmax
         do i=1, mimax
            x(i, j, k) = i + j + k
-           y(i, j, k) = 0
         end do
      end do
   end do
 
-! exchange values
+! message transfer
 
   call mpi_sendrecv(x(1,1,kstart), m, MPI_REAL, leftnode, 100, &
        x(1,1,kend+1), m, MPI_REAL, rightnode, 100, &
@@ -66,51 +76,41 @@ program sample
        x(1,1,kstart-1), m, MPI_REAL, leftnode, 100, &
        MPI_COMM_WORLD, istat, ierr)
 
-! introduction
+! --- count split 01 --- !
     call MPI_Barrier(MPI_COMM_WORLD, ierr)
     cpu1 = MPI_Wtime()
 
 ! main loop
-
   do k=kstart, kend
-     do j=2, mjmax-1
-        do i=2, mimax-1
-           ! substitute to y
-           if(kstart == 1) then
-              y(i, j, k) = x(i+1, j+1, k+1)
-           else if(kend == mkmax) then
-              y(i, j, k) = x(i-1, j-1, k-1)
-           else
-              y(i, j, k) = x(i-1, j-1, k-1) + x(i+1, j+1, k+1)
-           end if
+     do j=1, mjmax
+        do i=1, mimax
 
-           ! output
-           if(i == 2 .and. j == 2 .and. k == kstart) then
-              write(*,'(A,3(i3,A),f5.1)') 'y(', i, ',', j, ',', k, ') = ',y(i, j, k)
-           end if
+           ! substitute to y
+           y(i, j, k) = x(i, j, k-1) + x(i, j, k+1)
+
+           ! output for debug
+           !if(mod(i*j*k,3**15) == 0) then
+           !   write(*,'(A,3(i3,A),f7.1)') 'y(', i, ',', j, ',', k, ') = ',y(i, j, k)
+           !end if
 
         end do
      end do
   end do
-  
-  !for debug
-  !cpu2 = MPI_Wtime()
-  !write(*,'(A,i3,A,f8.5,A)') 'Rank', myrank, ', finished in ', cpu2 - cpu0, 'sec.'
 
+! --- count stop --- !
   call MPI_Barrier(MPI_COMM_WORLD, ierr)
   cpu2 = MPI_Wtime()
 
-  if(myrank == 0) then
-     write(*,*)
-     write(*,*) 'The time was counted.'
-     write(*,'(A,f8.5)') 'Initialize (s): ',cpu1-cpu0
-     write(*,'(A,f8.5)') 'Caliculate (s): ',cpu2-cpu1
-     write(*,'(A,f8.5)') 'Total (s): ',cpu2-cpu0
-     write(*,*)
-!     write(*,'(f9.6)') cpu2-cpu0 ! for descripting a graph
-  end if
 
-! finalize MPI variables
+! output
+if(myrank == 0) then
+  write(*,'(A,f10.7)') 'Initialize (s): ',cpu1-cpu0
+  write(*,'(A,f10.7)') 'Caliculate (s): ',cpu2-cpu1
+  write(*,'(A,f10.7)') 'Total (s): ',cpu2-cpu0
+! write(*,'(f9.6)') cpu2-cpu0 ! for descripting a graph
+end if
+
+! finalize MPI
   call mpi_finalize(ierr)
 
 end program sample
