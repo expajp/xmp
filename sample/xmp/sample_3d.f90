@@ -21,10 +21,10 @@ program sample
   real :: y(mimax,mjmax,0:mkmax+1)
 
 ! XMP directives
-!$xmp nodes n(*)
-!$xmp template t(0:mkmax+1)
-!$xmp distribute t(block) onto n
-!$xmp align (*,*,k) with t(k) :: x, y
+!$xmp nodes n(1,1,*)
+!$xmp template t(mimax, mjmax, 0:mkmax+1)
+!$xmp distribute t(block,block,block) onto n
+!$xmp align (i,j,k) with t(i,j,k) :: x, y
 !$xmp shadow x(0,0,1)
 
   x = 0.0
@@ -38,14 +38,17 @@ program sample
 
 ! initialize array
 
-!$xmp loop on t(k)
+!$xmp loop on t(*,*,k)
   do k=1, mkmax
+!$xmp loop on t(*,j,*)
      do j=1, mjmax
+!$xmp loop on t(i,*,*)
         do i=1, mimax
            x(i, j, k) = i + j + k
         end do
      end do
   end do
+
 
 ! message transfer
 !$xmp reflect (x)
@@ -56,9 +59,11 @@ program sample
 
 ! main loop
 
-!$xmp loop on t(k)
+!$xmp loop on t(*,*,k)
   do k=1, mkmax
+!$xmp loop on t(*,j,*)
      do j=1, mjmax
+!$xmp loop on t(i,*,*)
         do i=1, mimax
 
            ! substitute to y
@@ -79,9 +84,9 @@ program sample
 
 ! output
 if(myrank == 1) then
-  write(*,'(A,f10.7)') 'Initialize (s): ',cpu1-cpu0
-  write(*,'(A,f10.7)') 'Caliculate (s): ',cpu2-cpu1
-  write(*,'(A,f10.7)') 'Total (s): ',cpu2-cpu0
+  write(*,'(A,f8.5)') 'Initialize (s): ',cpu1-cpu0
+  write(*,'(A,f8.5)') 'Caliculate (s): ',cpu2-cpu1
+  write(*,'(A,f8.5)') 'Total (s): ',cpu2-cpu0
 ! write(*,'(f9.6)') cpu2-cpu0 ! for descripting a graph
 end if
 
