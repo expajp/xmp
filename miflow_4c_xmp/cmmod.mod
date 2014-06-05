@@ -1,4 +1,4 @@
-GFORTRAN module version '0' created from cmmod.f90 on Fri Jun  6 05:46:00 2014
+GFORTRAN module version '0' created from /tmp/__omni_tmp__.30469/cmmod.F90 on Fri Jun  6 06:31:23 2014
 MD5:c6fd3cae9f5ef66f6b9507a606b2c346 -- If you edit this, you'll get what you deserve.
 
 (() () () () () () () () () () () () () () () () () () () () () () () ()
