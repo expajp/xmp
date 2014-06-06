@@ -5,4 +5,4 @@
 #PJM -L "elapse=10:00"
 #PJM -j
 
-mpirun -np 4 miflow
+mpiexec -np 4 ./miflow
