@@ -17,4 +17,4 @@ $(POBJS): $(PSRCS)
 	$(FC) $(FFLAGS) -c $(PSRCS)
 
 clean:
-	rm -f core *.o *mod $(ALLOBJS) *~ #*#
+	rm -f core *.o *mod jobname.o* $(ALLOBJS) *~ #*#

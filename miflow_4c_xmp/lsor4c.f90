@@ -13,6 +13,7 @@
       !$xmp align coef(*,*,k) with t(k)
       !$xmp align b(*,j) with t(j)
       !$xmp align x(*,j) with t(j)
+      !$xmp shadow x(0, 2)
 
       bmax  =  0.0d0
 
@@ -24,7 +25,7 @@
       
       res  =  0.0d0
 
-! temporal development
+!$xmp loop on t(k) reduction(max:res)
       do  110  k = 1, n
         kp  =  k + 1
         do  110  ip = 1, lm
@@ -59,9 +60,10 @@
       
         iter  =  iter + 1
 
+!$xmp reflect(x)
 !$xmp loop on t(k)
         do  200  k = 1, n, 2
-          kp  =  k + 1
+          kp  =  k + 1 ! kp is an even number
 
           do  210  ip = 1, lm, 2
             ix      =  ip + l
@@ -74,7 +76,7 @@
                 / coef(ip,4,k)
             x(ix,kp) =  s1omg*x(ix,kp) + omega*xtmp
  210    continue
-  
+
           do  220  ip = 2, lm, 2
             ix      =  ip + l
             xtmp    = ( b(ip,k) - coef(ip,1,k)*x(ix  , kp-1) &
@@ -89,10 +91,10 @@
 
  200  continue
 
-
+!$xmp reflect(x)
 !$xmp loop on t(k)
         do  300  k = 2, n, 2
-          kp  =  k + 1
+          kp  =  k + 1 ! kp is an odd number
 
           do  310  ip = 2, lm, 2
             ix      =  ip + l
@@ -105,7 +107,7 @@
                 / coef(ip,4,k)
             x(ix,kp) =  s1omg*x(ix,kp) + omega*xtmp
  310    continue
-  
+
           do  320  ip = 1, lm, 2
             ix      =  ip + l
             xtmp    = ( b(ip,k) - coef(ip,1,k)*x(ix  , kp-1) &
@@ -122,6 +124,7 @@
 
         res  =  0.0d0
 
+!$xmp reflect(x)
 !$xmp loop on t(k) reduction(max:res)
         do  400  k = 1, n
           kp  =  k + 1
