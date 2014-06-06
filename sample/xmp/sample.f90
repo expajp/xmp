@@ -84,7 +84,8 @@ if(myrank == 1) then
 !  write(*,'(A,f10.7)') 'Initialize (s): ',cpu1-cpu0
 !  write(*,'(A,f10.7)') 'Caliculate (s): ',cpu2-cpu1
 !  write(*,'(A,f10.7)') 'Total (s): ',cpu2-cpu0
-  write(*,'(i3,X,3(f9.6,X))') nprocs, cpu1-cpu0, cpu2-cpu1, cpu2-cpu0 ! for descripting a graph
+!  write(*,'(i3,X,3(f9.6,X))') nprocs, cpu1-cpu0, cpu2-cpu1, cpu2-cpu0 ! for descripting a graph
+  write(*,'(i3,X,f9.6))') nprocs, cpu2-cpu0 ! for descripting a graph
 end if
 
 end program sample

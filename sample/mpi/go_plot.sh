@@ -7,6 +7,6 @@
 
 for opn in 1 2 4 8 16
 do
-    echo -n $opn
+#    echo -n $opn
     mpirun -np $opn ./a.out
 done
