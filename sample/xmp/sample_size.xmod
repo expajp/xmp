@@ -1,0 +1,25 @@
+<OmniFortranModule version="1.0">
+  <name>sample_size</name>
+  <depends>
+  </depends>
+  <typeTable>
+    <FbasicType type="Ie48130" is_parameter="true" ref="Fint"/>
+    <FbasicType type="Ie485e0" is_parameter="true" ref="Fint"/>
+    <FbasicType type="Ie48a90" is_parameter="true" ref="Fint"/>
+  </typeTable>
+  <identifiers>
+    <id type="Ie48130" sclass="flocal" original_name="mimax" declared_in="sample_size">
+      <name>mimax</name>
+    </id>
+    <id type="Ie485e0" sclass="flocal" original_name="mjmax" declared_in="sample_size">
+      <name>mjmax</name>
+    </id>
+    <id type="Ie48a90" sclass="flocal" original_name="mkmax" declared_in="sample_size">
+      <name>mkmax</name>
+    </id>
+  </identifiers>
+  <interfaceDecls>
+  </interfaceDecls>
+  <aux_info>
+  </aux_info>
+</OmniFortranModule>
