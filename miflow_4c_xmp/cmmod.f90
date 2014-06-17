@@ -31,4 +31,14 @@ module cmmod
       ! cmlslz
       real(8) :: zcoef(lm,7,n), zb(lm,n), zx(lm2,n2)
 
+      ! XMP directives
+      !$xmp nodes n(*)
+      !$xmp template t(0:23)
+      !$xmp distribute t(block) onto n
+      !$xmp align zcoef(*,*,k) with t(k)
+      !$xmp align zb(*,j) with t(j)
+      !$xmp align zx(*,j) with t(j-1)
+      !$xmp align p(*,*,k) with t(k-1)
+      !$xmp shadow p(0, 0, 1)
+
 end module cmmod

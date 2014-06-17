@@ -30,6 +30,7 @@
 
       res  =  0.0d0
 
+!$xmp reflect(x)
 !$xmp loop on t(k) reduction(max:res)
       do k = 1, n
         kp  =  k + 1

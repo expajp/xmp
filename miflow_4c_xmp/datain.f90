@@ -2,8 +2,9 @@
 
       use cmmod
 
-      ! XMP directives
-      !$xmp nodes n(*)
+      integer :: myrank, xmp_node_num
+
+      myrank = xmp_node_num()
 
 !      read(5,*) xlen, dt
       
@@ -25,21 +26,21 @@
       linner =  50
       maxitr =  299
 
-      !$xmp task on n(1)
-      write(6,6000)  l, m, n, xlen, ylen, zlen, dx, dy, dz, dt, re
- 6000 format(5x,20('=')/ &
-       5x,'  MiFlow (Ver 1.1)'/ &
-       5x,20('=')// &
-       5x,'Number of lattice        : ',i5,' *',i5,' *',i5// &
-       5x,'Length (x-direction)     : ',1p,e15.4/ &
-       5x,'Length (y-direction)     : ',1p,e15.4/ &
-       5x,'Length (z-direction)     : ',1p,e15.4// &
-       5x,'Mesh size (x-direction)  : ',e15.4/ &
-       5x,'          (y-direction)  : ',e15.4/ &
-       5x,'          (z-direction)  : ',e15.4// &
-       5x,'Time step                : ',e15.4// &
-       5x,'Reynolds Number          : ',e15.4///)
-      !$xmp end task
+      if(myrank == 1) then
+         write(6,6000)  l, m, n, xlen, ylen, zlen, dx, dy, dz, dt, re
+6000     format(5x,20('=')/ &
+              5x,'  MiFlow (Ver 1.1)'/ &
+              5x,20('=')// &
+              5x,'Number of lattice        : ',i5,' *',i5,' *',i5// &
+              5x,'Length (x-direction)     : ',1p,e15.4/ &
+              5x,'Length (y-direction)     : ',1p,e15.4/ &
+              5x,'Length (z-direction)     : ',1p,e15.4// &
+              5x,'Mesh size (x-direction)  : ',e15.4/ &
+              5x,'          (y-direction)  : ',e15.4/ &
+              5x,'          (z-direction)  : ',e15.4// &
+              5x,'Time step                : ',e15.4// &
+              5x,'Reynolds Number          : ',e15.4///)
+      end if
       
       return
       end

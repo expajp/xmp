@@ -5,6 +5,7 @@
 
 ! ---( Make right hand side of system of linear equation )--------------
 
+!$xmp loop on t(k)
       do  110  k = 1, n
         ip  =  0
         do  110  j = 1, m
@@ -25,8 +26,9 @@
               zcoef, zb, zx, omega, s1omg )
 
 
-! ---( put the solution into presure variable "p" )---------------------
+! ---( put the solution into pressure variable "p" )---------------------
 
+!$xmp loop on t(k)
       do  210  k = 1, n
         ip  =  0
         do  210  j = 1, m
@@ -38,27 +40,27 @@
       
 ! ---( Velocity correction )--------------------------------------------
       
+!$xmp loop on t(k-1)
       do  500  k = 2, n1
         do  500  j = 2, m1
           do  500  i = 2, l
             u(i,j,k) = u1(i,j,k) - dtodx*( p(i+1,j  ,k  ) - p(i,j,k) )
  500  continue
 
-
+!$xmp loop on t(k-1)
       do  600  k = 2, n1
         do  600  j = 2, m
           do  600  i = 2, l1
             v(i,j,k) = v1(i,j,k) - dtody*( p(i  ,j+1,k  ) - p(i,j,k) )
  600  continue
 
-
+!$xmp reflect(p)
+!$xmp loop on t(k-1)
       do  700  k = 2, n
         do  700  j = 2, m1
           do  700  i = 2, l1
             w(i,j,k) = w1(i,j,k) - dtodz*( p(i  ,j  ,k+1) - p(i,j,k) )
  700  continue
 
-
-
       return
-      end
+      end subroutine caluvw

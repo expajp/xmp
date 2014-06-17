@@ -13,9 +13,6 @@
       integer :: myrank, xmp_node_num
       double precision :: xmp_wtime, cpu0, cpu1
 
-      ! XMP directives
-      !$xmp nodes n(*)
-
       myrank = xmp_node_num()
 
       ! --- count start --- !

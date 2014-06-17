@@ -23,6 +23,7 @@
             w1(i,j,k)  =  0.0d0
  120  continue
 
+!$xmp loop on t(k-1)
       do  200  k = 1, n2
         do  200  j = 1, m2
           do  200  i = 1, l2
@@ -39,7 +40,7 @@
             dfs(i,j,k)  =  0.0d0
  300  continue
 
-
+!$xmp loop on t(k)
       do  500  k = 1, n
         do  500  ip = 1, lm
           zcoef(ip,1,k)  =  0.0d0
@@ -52,9 +53,10 @@
           zb(ip,k)       =  0.0d0
  500  continue
 
+!$xmp loop on t(kp-1)
       do  510  kp = 1, n2
         do  510  ip = 1, lm2
-          zx(ip,k)       =  0.0d0
+          zx(ip,kp)       =  0.0d0
  510  continue
 
 
