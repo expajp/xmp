@@ -5,4 +5,4 @@
 #PJM -L "elapse=02:00"
 #PJM -j
 
-time mpirun -np 4 ./a.out
+mpirun -np 4 ./a.out
