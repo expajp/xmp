@@ -18,7 +18,7 @@ program sample
   integer :: kstart, kend, m
   integer :: leftnode, rightnode
   real(8) :: cpu0, cpu1, cpu2, cpu3
-  integer, dimension(MPI_STATUS_SIZE) :: istat ! for sendrecv
+  integer, dimension(4) :: reqs ! for nonblocking
 
 ! Set Allocatable Arrays
   real, dimension(:, :, :), allocatable :: x
@@ -72,13 +72,27 @@ program sample
 
 ! message transfer
 
-  call mpi_sendrecv(x(1,1,kstart), m, MPI_REAL, leftnode, 100, &
-       x(1,1,kend+1), m, MPI_REAL, rightnode, 100, &
-       MPI_COMM_WORLD, istat, ierr)
+  ! to leftnode
+  call mpi_send_init(x(1,1,kstart), m, MPI_REAL, leftnode, 100, &
+       MPI_COMM_WORLD, reqs(1), ierr)
 
-  call mpi_sendrecv(x(1,1,kend), m, MPI_REAL, rightnode, 100, &
-       x(1,1,kstart-1), m, MPI_REAL, leftnode, 100, &
-       MPI_COMM_WORLD, istat, ierr)
+  ! to rightnode
+  call mpi_send_init(x(1,1,kend), m, MPI_REAL, rightnode, 100, &
+       MPI_COMM_WORLD, reqs(2), ierr)
+
+  ! from leftnode
+  call mpi_recv_init(x(1,1,kstart-1), m, MPI_REAL, leftnode, 100, &
+       MPI_COMM_WORLD, reqs(3), ierr)
+
+  ! from rightnode
+  call mpi_recv_init(x(1,1,kend+1), m, MPI_REAL, rightnode, 100, &
+       MPI_COMM_WORLD, reqs(4), ierr)
+
+  ! start communication
+  call mpi_startall(4, reqs, ierr)
+
+  ! synchronization
+  call mpi_waitall(4, reqs, MPI_STATUSES_IGNORE, ierr)
 
 ! --- count split 02 --- !
     call MPI_Barrier(MPI_COMM_WORLD, ierr)
@@ -90,7 +104,7 @@ program sample
         do i=1, mimax
 
            ! substitute to y
-           y(i, j, k) = x(i, j, k-1) + x(i, j, k+1)
+           y(i, j, k) = x(i, j, k) + x(i, j, k+1)
 
            ! output for debug
            !if(mod(i*j*k,3**15) == 0) then
@@ -115,7 +129,7 @@ if(myrank == 0) then
 !  write(*,'(A,f10.7)') 'Caliculate (s): ',cpu2-cpu1
 !  write(*,'(A,f10.7)') 'Total (s): ',cpu2-cpu0
   write(*,'(i3,X,4(f9.6,X))') nprocs, cpu1-cpu0, cpu2-cpu1, cpu3-cpu2, cpu3-cpu0 ! for descripting a graph
-!  write(*,'(i3,X,f9.6)') nprocs, cpu2-cpu0 ! for descripting a graph
+!  write(*,'(i3,X,3(f9.6,X))') nprocs, cpu2-cpu0 ! for descripting a graph
 end if
 
 ! finalize MPI
