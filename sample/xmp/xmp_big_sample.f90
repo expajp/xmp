@@ -1,7 +1,7 @@
 module sample_size
   implicit none
 
-  integer, PARAMETER :: mimax=1024, mjmax=512, mkmax=512
+  integer, PARAMETER :: mimax=2048, mjmax=2048, mkmax=512
 
 end module sample_size
 
@@ -15,7 +15,7 @@ program sample
 ! Variables for XMP
   integer :: myrank, xmp_node_num
   integer :: nprocs, xmp_all_num_nodes
-  double precision :: xmp_wtime, cpu0, cpu1, cpu2
+  double precision :: xmp_wtime, cpu0, cpu1, cpu2, cpu3
 
 ! Set Arrays
   real :: x(mimax,mjmax,0:mkmax+1)
@@ -49,12 +49,16 @@ program sample
      end do
   end do
 
-! message transfer
-!$xmp reflect (x)
-
 ! --- count split 01 --- !
 !$xmp barrier
   cpu1 = xmp_wtime()
+
+! message transfer
+!$xmp reflect (x)
+
+! --- count split 02 --- !
+!$xmp barrier
+  cpu2 = xmp_wtime()
 
 ! main loop
 
@@ -77,15 +81,18 @@ program sample
 
 ! --- count stop --- !
 !$xmp barrier
-  cpu2 = xmp_wtime()
+  cpu3 = xmp_wtime()
+
+! to protect a compiler to remove for-loop
+  write(*, *) y(mimax, mjmax, mkmax*myrank/nprocs)
 
 ! output
 if(myrank == 1) then
 !  write(*,'(A,f10.7)') 'Initialize (s): ',cpu1-cpu0
 !  write(*,'(A,f10.7)') 'Caliculate (s): ',cpu2-cpu1
 !  write(*,'(A,f10.7)') 'Total (s): ',cpu2-cpu0
-!  write(*,'(i3,X,3(f9.6,X))') nprocs, cpu1-cpu0, cpu2-cpu1, cpu2-cpu0 ! for descripting a graph
-  write(*,'(i3,X,f9.6))') nprocs, cpu2-cpu0 ! for descripting a graph
+  write(*,'(i3,X,4(f9.6,X))') nprocs, cpu1-cpu0, cpu2-cpu1, cpu3-cpu2, cpu3-cpu0 ! for descripting a graph
+!  write(*,'(i3,X,f9.6))') nprocs, cpu2-cpu0 ! for descripting a graph
 end if
 
 end program sample
