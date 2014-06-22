@@ -1,7 +1,7 @@
 module sample_size
   implicit none
 
-  integer, PARAMETER :: mimax=1024, mjmax=512, mkmax=512
+  integer, PARAMETER :: mimax=1024, mjmax=1024, mkmax=512
 
 end module sample_size
 
