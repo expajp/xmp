@@ -1,7 +1,7 @@
 module sample_size
   implicit none
 
-  integer, PARAMETER :: mimax=128, mjmax=128, mkmax=512
+  integer, PARAMETER :: mimax=1024, mjmax=1024, mkmax=8
 
 end module sample_size
 
@@ -128,7 +128,7 @@ if(myrank == 0) then
 !  write(*,'(A,f10.7)') 'Initialize (s): ',cpu1-cpu0
 !  write(*,'(A,f10.7)') 'Caliculate (s): ',cpu2-cpu1
 !  write(*,'(A,f10.7)') 'Total (s): ',cpu2-cpu0
-  write(*,'(i3,X,4(f9.6,X))') nprocs, cpu1-cpu0, cpu2-cpu1, cpu3-cpu2, cpu3-cpu0 ! for descripting a graph
+  write(*,'(i3,X,4(f9.6,X))') mkmax, cpu1-cpu0, cpu2-cpu1, cpu3-cpu2, cpu3-cpu0 ! for descripting a graph
 !  write(*,'(i3,X,3(f9.6,X))') nprocs, cpu2-cpu0 ! for descripting a graph
 end if
 
