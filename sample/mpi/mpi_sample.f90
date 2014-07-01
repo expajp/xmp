@@ -104,7 +104,7 @@ program sample
         do i=1, mimax
 
            ! substitute to y
-           y(i, j, k) = x(i, j, k) + x(i, j, k+1)
+           y(i, j, k) = x(i, j, k-1) + x(i, j, k+1)
 
            ! output for debug
            !if(mod(i*j*k,3**15) == 0) then
