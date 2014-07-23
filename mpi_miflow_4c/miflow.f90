@@ -3,31 +3,32 @@
 !                                        created by Mitsuo YOKOKAWA
 ! ----------------------------------------------------------------------
 
-      program  miflow
+program  miflow
 
-      use cmmod
+  use mpi
+  use cmmod
 
-      character  filenm*32
+  character  filenm*32
+
+  call initialize_mpi
+
+  call  clearv
+  call  datain
+  call  initvr
+  call  mkcoef
 
 
-      call  clearv
-      call  datain
-      call  initvr
-      call  mkcoef
+  do loopo = lpbgn, lpend
+     do loopi = 1, linner
 
-      
-      do  1000  loopo = lpbgn, lpend
+        call  setbnd
+        call  calcu1
+        call  calcv1
+        call  calcw1
+        call  setbcv
+        call  caluvw
 
-        do  1100  loopi = 1, linner
-
-          call  setbnd
-          call  calcu1
-          call  calcv1
-          call  calcw1
-          call  setbcv
-          call  caluvw
-
- 1100   continue
+     end do
 
         lh = l/2 + 2
         mh = m/2 + 2
@@ -36,21 +37,20 @@
         write(6,*) 'Loop = ', loopo
         write(6,'(a,1p,2e15.5)') &
              ' Maximum velocity at outlet  : ', pcal, u(l,mh,nh)
-      
-! Debug
-!      write(6,'(5e15.5)') (u(l ,mh, k),k=2,n1)
-!      write(6,'(5e15.5)') (p(i ,mh,nh),i=2,l1)
 
- 1000 continue
+        ! Debug
+        !      write(6,'(5e15.5)') (u(l ,mh, k),k=2,n1)
+        !      write(6,'(5e15.5)') (p(i ,mh,nh),i=2,l1)
 
+     end do
 
-!      filenm = '../Figure/snap'
-!      write( filenm(15:18), '(i4.4)' ) loopo
-!      open(10, file=filenm, form='unformatted')
-!      write(10)  l, n, uinit
-!      write(10) ((u(i,mh,k),i=1,l1),k=2,n1)
-!      close(10)
+        !      filenm = '../Figure/snap'
+        !      write( filenm(15:18), '(i4.4)' ) loopo
+        !      open(10, file=filenm, form='unformatted')
+        !      write(10)  l, n, uinit
+        !      write(10) ((u(i,mh,k),i=1,l1),k=2,n1)
+        !      close(10)
 
-      
-      stop
-      end
+     call finalize_mpi
+
+   end program miflow
