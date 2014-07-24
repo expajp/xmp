@@ -11,22 +11,23 @@ program  miflow
   character  filenm*32
 
   call initialize_mpi
+  call set_distribution
 
-  call  clearv
-  call  datain
-  call  initvr
-  call  mkcoef
+  call  clearv ! finished
+  call  datain ! finished
+  call  initvr ! finished
+  call  mkcoef ! finished
 
 
   do loopo = lpbgn, lpend
      do loopi = 1, linner
 
-        call  setbnd
-        call  calcu1
-        call  calcv1
-        call  calcw1
-        call  setbcv
-        call  caluvw
+        call  setbnd ! finished
+        call  calcu1 ! finished
+        call  calcv1 ! finished
+        call  calcw1 ! finished
+        call  setbcv ! finished
+        call  caluvw ! todo communication
 
      end do
 
@@ -34,9 +35,12 @@ program  miflow
         mh = m/2 + 2
         nh = n/2 + 2
         pcal =  0.125*re*(p(l,mh,nh)-p(l1,mh,nh))*odx
-        write(6,*) 'Loop = ', loopo
-        write(6,'(a,1p,2e15.5)') &
-             ' Maximum velocity at outlet  : ', pcal, u(l,mh,nh)
+
+        if(myrank == 0) then
+           write(6,*) 'Loop = ', loopo
+           write(6,'(a,1p,2e15.5)') &
+                ' Maximum velocity at outlet  : ', pcal, u(l,mh,nh)
+        end if
 
         ! Debug
         !      write(6,'(5e15.5)') (u(l ,mh, k),k=2,n1)

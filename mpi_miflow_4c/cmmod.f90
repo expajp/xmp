@@ -35,6 +35,7 @@ module cmmod
   ! Variables for MPI
   integer :: myrank, nprocs, ierr
   integer :: leftnode, rightnode
+  integer, dimension(MPI_STATUS_SIZE) :: istat
 
   integer :: nstart, nend, nchunk
   integer :: n1start, n1end, n1chunk

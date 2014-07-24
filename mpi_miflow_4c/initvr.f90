@@ -2,6 +2,7 @@
 
       use cmmod
 
+      integer :: n1start_temp
 
       nd2     =  n/2 - 1
       md2     =  m/2 - 1
@@ -44,13 +45,19 @@
       s1omg   =  1.0d0 - omega
       eps     =  1.0e-5
       
+      if(n1start == 1) then
+         n1start_temp = 2
+      else
+         n1start_temp = n1start
+      end if
 
-      do  100  k = 2, n1
-        do  100  j = 2, m1
-          do  100  i = 2, l
-            u(i,j,k)  =  uinit
- 100  continue
-
+      do k = n1start_temp, n1end
+         do j = 2, m1
+            do i = 2, l
+               u(i,j,k)  =  uinit
+            end do
+         end do
+      end do
       
       return
-      end
+    end subroutine initvr

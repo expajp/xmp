@@ -5,12 +5,12 @@
 
 ! --- ( for ilsolv = 5 )------------------------------------------------
 
-      do  300  k = 1, n
+      do k = nstart, nend
 
         ip  =  0
 
-        do  300  j = 1, m
-          do  300  i = 1, l
+        do j = 1, m
+           do i = 1, l
 
             ip  =  ip + 1
             
@@ -22,19 +22,22 @@
             if( j .ne. m )  zcoef(ip,6,k)  =  -ody2
             if( k .ne. n )  zcoef(ip,7,k)  =  -odz2
 
- 300  continue
+         end do
+      end do
+   end do
 
-      do  400  k = 1, n
-        do  400  ip = 1, lm
+   do k = nstart, nend
+      do ip = 1, lm
           zcoef(ip,4,k)  =  - zcoef(ip,1,k) - zcoef(ip,2,k) &
                       - zcoef(ip,3,k) + odx2 &
                       - zcoef(ip,6,k) - zcoef(ip,7,k)
         
-! for Neumann condition        
+! for Neumann condition ノイマン境界条件
 !    &                      - zcoef(ip,3,k) + zcoef(ip,5,k)
 !    &                      - zcoef(ip,6,k) - zcoef(ip,7,k)
         
- 400  continue
+       end do
+    end do
 
 ! for reference point      
 !      zcoef(lmctr,1,nctr)  =  0.0d0
@@ -47,4 +50,4 @@
 
       
       return
-      end
+    end subroutine mkcoef
