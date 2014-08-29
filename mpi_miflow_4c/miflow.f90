@@ -27,7 +27,7 @@ program  miflow
         call  calcv1 ! finished
         call  calcw1 ! finished
         call  setbcv ! finished
-        call  caluvw ! todo communication
+        call  caluvw ! finished
 
      end do
 

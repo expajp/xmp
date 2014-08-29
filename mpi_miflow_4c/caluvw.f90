@@ -1,4 +1,4 @@
-subroutine  caluvw
+subroutine caluvw
 
   use cmmod
   use mpi
@@ -23,15 +23,15 @@ subroutine  caluvw
 ! ---( Make right hand side of system of linear equation )--------------
 
   call mpi_sendrecv(u1(1,1,nstart), l1*m2, MPI_REAL, leftnode, 100, &
-       u1(1,1,nend+1), l1*m2, MPI_REAL, rightnode, 100, &
+       u1(1,1,nend+1), l1*m2, MPI_REAL8, rightnode, 100, &
        MPI_COMM_WORLD, istat, ierr)
 
   call mpi_sendrecv(v1(1,1,nstart), l2*m1, MPI_REAL, leftnode, 100, &
-       v1(1,1,nend+1), l2*m1, MPI_REAL, rightnode, 100, &
+       v1(1,1,nend+1), l2*m1, MPI_REAL8, rightnode, 100, &
        MPI_COMM_WORLD, istat, ierr)
 
   call mpi_sendrecv(w1(1,1,nstart), l2*m2, MPI_REAL, leftnode, 100, &
-       w1(1,1,nend+1), l2*m2, MPI_REAL, rightnode, 100, &
+       w1(1,1,nend+1), l2*m2, MPI_REAL8, rightnode, 100, &
        MPI_COMM_WORLD, istat, ierr)
 
   do k = nstart, nend
@@ -51,10 +51,12 @@ subroutine  caluvw
 
       
 ! ---( Poisson solver )--------------------------------------------------
-  
-  ! temporary comment out
+
+  call mpi_barrier(MPI_COMM_WORLD, ierr)
+
   call lsor4c( l, lm, n, eps, maxitr, zcoef, zb, zx, omega, s1omg, myrank, nprocs )
 
+  call mpi_barrier(MPI_COMM_WORLD, ierr)
 
 ! ---( put the solution into presure variable "p" )---------------------
 
