@@ -3,45 +3,49 @@
 !                                        created by Mitsuo YOKOKAWA
 ! ----------------------------------------------------------------------
 
-      program  miflow
+program  miflow
 
-      use cmmod
+  use cmmod
+  implicit none
 
-      character  filenm*32
+  integer :: loopo, loopi
+  integer :: lh, mh, nh
+  real(8) :: pcal
 
+  ! character  filenm*32
 
-      call  clearv
-      call  datain
-      call  initvr
-      call  mkcoef
+  call  clearv
+  call  datain
+  call  initvr
+  call  mkcoef
 
       
-      do  1000  loopo = lpbgn, lpend
+  do loopo = lpbgn, lpend
 
-        do  1100  loopi = 1, linner
+     do loopi = 1, linner
 
-          call  setbnd
-          call  calcu1
-          call  calcv1
-          call  calcw1
-          call  setbcv
-          call  caluvw
+        call  setbnd
+        call  calcu1
+        call  calcv1
+        call  calcw1
+        call  setbcv
+        call  caluvw
+            
+     end do
 
- 1100   continue
-
-        lh = l/2 + 2
-        mh = m/2 + 2
-        nh = n/2 + 2
-        pcal =  0.125*re*(p(l,mh,nh)-p(l1,mh,nh))*odx
-        write(6,*) 'Loop = ', loopo
-        write(6,'(a,1p,2e15.5)') &
-             ' Maximum velocity at outlet  : ', pcal, u(l,mh,nh)
+     lh = l/2 + 2
+     mh = m/2 + 2
+     nh = n/2 + 2
+     pcal =  0.125*re*(p(l,mh,nh)-p(l1,mh,nh))*odx
+     write(6,*) 'Loop = ', loopo
+     write(6,'(a,1p,2e15.5)') &
+          ' Maximum velocity at outlet  : ', pcal, u(l,mh,nh)
       
 ! Debug
 !      write(6,'(5e15.5)') (u(l ,mh, k),k=2,n1)
 !      write(6,'(5e15.5)') (p(i ,mh,nh),i=2,l1)
-
- 1000 continue
+     
+  end do
 
 
 !      filenm = '../Figure/snap'
@@ -51,6 +55,7 @@
 !      write(10) ((u(i,mh,k),i=1,l1),k=2,n1)
 !      close(10)
 
-      
-      stop
-      end
+  
+  stop
+
+end program miflow
