@@ -1,5 +1,5 @@
 c ----------------------------------------------------------------------
-c     MiFlow Ver 1.1
+c     MiFlow Ver 2.0
 c                                        created by Mitsuo YOKOKAWA
 c ----------------------------------------------------------------------
 
@@ -10,16 +10,11 @@ c ----------------------------------------------------------------------
 
       character  filenm*32
 
-c     caliculate time
-!      integer t1, t2, t_rate, t_max, diff
-!      call system_clock(t1)! clock start
 
-      
       call  clearv
       call  datain
       call  initvr
       call  mkcoef
-      call  ilvpcg( l, m, n, lm, lmn, nls, coef, dd, lv, lpt )
 
       
       do  1000  loopo = lpbgn, lpend
@@ -56,16 +51,6 @@ c      open(10, file=filenm, form='unformatted')
 c      write(10)  l, n, uinit
 c      write(10) ((u(i,mh,k),i=1,l1),k=2,n1)
 c      close(10)
-
-c     caliculate time
-!      call system_clock(t2, t_rate, t_max)! clock stop
-!      if ( t2 < t1 ) then
-!          diff = t_max - t1 + t2
-!       else
-!          diff = t2 - t1
-!       endif
-       
-!       print "(A, F10.3)", "time it took was:", diff/dble(t_rate)
 
       
       stop

@@ -19,9 +19,6 @@ c      read(5,*) xlen, dt
 
       uinit  =  1.0
 
-      icschm =  1 ! difference scheme
-      ilsolv =  5 ! solver
-      
       lpbgn  =  1
       lpend  =  20
       linner =  50
@@ -42,20 +39,6 @@ c      read(5,*) xlen, dt
      &       5x,'Time step                : ',e15.4//
      &       5x,'Reynolds Number          : ',e15.4///)
       
-      write(6,6100)  icschm, ilsolv 
- 6100 format(5x,'Difference scheme for convection term : ',i5/
-     &       5x,'   1 = Upwind'/
-     &       5x,'   2 = Central'//
-     &       5x,'Poisson Solver                        : ',i5/
-     &       5x,'   1 = SOR method with natural ordering'/
-     &       5x,'   2 = SOR method with red-black ordering ',
-     &          '(Vectorizable)'/
-     &       5x,'   3 = ILUCG method with natural ordering'/
-     &       5x,'   4 = ILUCG method with hyperplane ordering ',
-     &          '(Vectorizable)'/
-     &       5x,'   5 = SOR method with 4-color ordering ',
-     &          '(Vectorizable)'///)
-
       
       return
       end
