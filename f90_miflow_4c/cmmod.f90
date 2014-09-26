@@ -2,7 +2,7 @@ module cmmod
 
       implicit none
 
-      integer, parameter :: l=101, m=5, n=21
+      integer, parameter :: l=101, m=5, n=32!n=21
       
       integer, parameter :: l1=l+1, m1=m+1, n1=n+1, l2=l+2, m2=m+2, n2=n+2
       integer, parameter :: lm=l*m, lmn=l*m*n, lm2=lm+2*l
