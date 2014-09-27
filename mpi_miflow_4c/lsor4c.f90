@@ -37,12 +37,6 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
   ! set distribution
   nstart = ( n / nprocs ) * myrank + 1
 
-  ! if(myrank == 0) then
-  !    nstart2 = 2
-  ! else
-  !    nstart2 = nstart
-  ! end if
-
   if(myrank .ne. nprocs-1) then
      nend = ( n / nprocs ) * (myrank+1)
   else 
@@ -95,13 +89,11 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
   if( res .lt. eps )  then
 
      iter = 0
-     !write(*, *) "myrank = ", myrank, "bmax = ", bmax, "res = ",res
      if(myrank == 0) write(6,6000) iter, res
      return
 
   end if
 
-  call mpi_barrier(MPI_COMM_WORLD, ierr)  
 
   ! --- ( iteration phase ) --------------------------------------------
   iter  =  0
@@ -147,8 +139,6 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
 
   end do
 
-  call mpi_barrier(MPI_COMM_WORLD, ierr)
-
   ! sendrecv for x(*, kp)
   ! when nstart is an odd number, x(*, nstart+1) has been computed
   ! (because kp = k + 1)
@@ -189,8 +179,6 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
      end do
 
   end do
-
-  call mpi_barrier(MPI_COMM_WORLD, ierr)
 
   ! sendrecv for x(*, kp)
   ! x(*, kp+1) has received and x(*, nend+1) has been updated in this node
@@ -238,8 +226,6 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
   if(myrank == 0)  write(6,6000)  iter, res
 
 6000 format(8x,'== SOR4C ==  ',i5,5x,e15.6)
-
-  call mpi_barrier(MPI_COMM_WORLD, ierr)
 
   return
 

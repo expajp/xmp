@@ -20,8 +20,6 @@ program  miflow
   call  initvr
   call  mkcoef
 
-  call mpi_barrier(MPI_COMM_WORLD, ierr)
-      
   do loopo = lpbgn, lpend
 
      do loopi = 1, linner
@@ -46,7 +44,6 @@ program  miflow
              ' Maximum velocity at outlet  : ', pcal, u(l,mh,nh)
      end if
 
-     call mpi_barrier(MPI_COMM_WORLD, ierr)
       
 ! Debug
 !      write(6,'(5e15.5)') (u(l ,mh, k),k=2,n1)

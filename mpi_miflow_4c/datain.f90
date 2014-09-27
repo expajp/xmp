@@ -23,13 +23,9 @@ subroutine  datain
   linner =  50
   maxitr =  299
 
-!  call mpi_barrier(MPI_COMM_WORLD, ierr)
- 
   if(myrank == 0) then
      write(6,6000)  l, m, n, xlen, ylen, zlen, dx, dy, dz, dt, re
   end if
-
-!  call mpi_barrier(MPI_COMM_WORLD, ierr)
 
 !  write(6,7000) nprocs, myrank, nstart, nend, nstart2, n1end, n2end
 
