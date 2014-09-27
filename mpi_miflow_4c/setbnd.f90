@@ -1,4 +1,4 @@
-subroutine  setbnd
+ subroutine  setbnd
 
   use cmmod
   implicit none
@@ -21,6 +21,7 @@ subroutine  setbnd
      end do
   end do
 
+  ! no effect to other nodes
   do j = 2, m1
      do i = 2, l
         u( i, j, 1)  =  -u( i, j, 2)
@@ -45,6 +46,7 @@ subroutine  setbnd
      end do
   end do
 
+  ! no effect to other nodes
   do j = 2, m
      do i = 2, l1
         v( i, j, 1)  =  -v( i, j, 2)

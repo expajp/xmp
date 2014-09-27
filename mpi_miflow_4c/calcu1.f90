@@ -65,7 +65,7 @@ subroutine  calcu1
 
   ! sendrecv for u(*, *, k-1)
   call mpi_sendrecv(u(1, 1, nend), l1*m2, MPI_REAL8, rightnode, 100, &
-       u(1, 1, nstart-1), l1*m2, MPI_REAL8, leftnode, 100, &
+       u(1, 1, nstart2-1), l1*m2, MPI_REAL8, leftnode, 100, &
        MPI_COMM_WORLD, istat, ierr)
 
   do k = nstart2, n1end
@@ -77,9 +77,6 @@ subroutine  calcu1
                 + u(i  ,j-1,k  )                  ) &
                 + dfzore*(  u(i  ,j  ,k+1) - 2.0d0*u(i,j,k) &
                 + u(i  ,j  ,k-1)                  )
-
-           if(u(i,j,k-1) == 0.0d0 .or. u(i,j,k+1) == 0.0d0) write(*, *) "error occured in calcu1 01"
-
         end do
      end do
   end do

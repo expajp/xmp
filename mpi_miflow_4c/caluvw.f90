@@ -5,65 +5,23 @@ subroutine  caluvw
 
   integer :: i, j, k
   integer :: ip
-  real(8), dimension(l2, m2, 3) :: sendbuf
-  real(8), dimension(l2, m2, 3) :: recvbuf
 
   ! ---( Make right hand side of system of linear equation )--------------
   
-  ! initialize buffers
-  sendbuf = 0.0d0
-  recvbuf = 0.0d0
-
-  ! cram data to sendbuf
-  if(myrank /= 0) then
-
-     do j = 1, m2
-        do i = 1, l1
-           sendbuf(i, j, 1) = u1(i, j, nstart)
-        end do
-     end do
-
-     do j = 1, m1
-        do i = 1, l2
-           sendbuf(i, j, 2) = v1(i, j, nstart)
-        end do
-     end do
-
-     do j = 1, m2
-        do i = 1, l2
-           sendbuf(i, j, 3) = w1(i, j, nstart)
-        end do
-     end do
-
-  end if
 
   ! sendrecv for k+1
-  call mpi_sendrecv(sendbuf, l2*m2*3, MPI_REAL8, leftnode, 100, &
-       recvbuf, l2*m2*3, MPI_REAL8, rightnode, 100, &
+  call mpi_sendrecv(u1(1, 1, nstart), l1*m2, MPI_REAL8, leftnode, 100, &
+       u1(1, 1, nend+1), l1*m2, MPI_REAL8, rightnode, 100, &
        MPI_COMM_WORLD, istat, ierr)
 
-  ! distribute data from recvbuf
-  if(myrank /= nprocs-1) then
+  call mpi_sendrecv(v1(1, 1, nstart), l2*m1, MPI_REAL8, leftnode, 100, &
+       v1(1, 1, nend+1), l2*m1, MPI_REAL8, rightnode, 100, &
+       MPI_COMM_WORLD, istat, ierr)
 
-     do j = 1, m2
-        do i = 1, l1
-           u1(i, j, nend+1) = recvbuf(i, j, 1)
-        end do
-     end do
+  call mpi_sendrecv(w1(1, 1, nstart), l2*m2, MPI_REAL8, leftnode, 100, &
+       w1(1, 1, nend+1), l2*m2, MPI_REAL8, rightnode, 100, &
+       MPI_COMM_WORLD, istat, ierr)
 
-     do j = 1, m1
-        do i = 1, l2
-           v1(i, j, nend+1) = recvbuf(i, j, 2)
-        end do
-     end do
-
-     do j = 1, m2
-        do i = 1, l2
-           v1(i, j, nend+1) = recvbuf(i, j, 3)
-        end do
-     end do
-
-  end if
   
   ! calculate
   do k = nstart, nend

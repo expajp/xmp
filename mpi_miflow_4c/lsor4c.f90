@@ -95,7 +95,8 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
   if( res .lt. eps )  then
 
      iter = 0
-     write(6,6000) iter, res
+     !write(*, *) "myrank = ", myrank, "bmax = ", bmax, "res = ",res
+     if(myrank == 0) write(6,6000) iter, res
      return
 
   end if
@@ -228,8 +229,8 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
 
   ! ===( debug write )======================
   !        if( mod(iter,10) .eq. 0 )  then
-  !           write(6,6000)  iter, res
-  !        endif
+  !           if(myrank == 0) write(6,6000)  iter, res
+  !        end if
 
 
   if( (res .gt. eps) .and. (iter .le. maxitr) )  go to 10
