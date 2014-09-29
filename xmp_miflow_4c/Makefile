@@ -1,6 +1,6 @@
 #FC = gfortran
-#FC = xmpf90
-FC = mpifrtpx
+FC = xmpf90
+#FC = mpifrtpx
 
 FFLAGS =  -O2
 
@@ -28,4 +28,4 @@ $(PMODO): $(PMOD)
 	$(FC) $(FFLAGS) -c $^
 
 clean:
-	rm -f core *.o *mod jobname.o* $(ALLOBJS) *~ #*#
+	rm -f core *.o *.mod jobname.o* core-F_Front.* $(ALLOBJS) *~ #*#

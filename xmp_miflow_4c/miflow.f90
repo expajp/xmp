@@ -4,17 +4,16 @@
 ! ----------------------------------------------------------------------
 
 program  miflow
-  use mpi
   use cmmod
   implicit none
 
   integer :: loopo, loopi
   integer :: lh, mh, nh
-  integer :: k
+  ! integer :: k
   real(8) :: pcal
 
   ! character  filenm*32
-  call initialize_mpi
+  call initialize_xmp
 
   call  clearv
   call  datain
@@ -53,9 +52,9 @@ program  miflow
   end do
 
   ! output
-  do k = nstart, n2end
-     write(*, '(i3, e15.5)') k, u(l, m/2+1, k)
-  end do
+  !do k = nstart, n2end
+  !   write(*, '(i3, e15.5)') k, u(l, m/2+1, k)
+  !end do
 
 
 !      filenm = '../Figure/snap'
@@ -65,8 +64,6 @@ program  miflow
 !      write(10) ((u(i,mh,k),i=1,l1),k=2,n1)
 !      close(10)
 
-  call finalize_mpi
-  
   stop
 
 end program miflow

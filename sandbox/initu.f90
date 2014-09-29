@@ -22,7 +22,7 @@ subroutine initu
   end do
 
 !$xmp barrier
-
+  ! write(*, *) "myrank = ", myrank
   if(myrank == 1)  write(*,*) "umax = ", umax
 
 end subroutine initu

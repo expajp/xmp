@@ -1,5 +1,4 @@
 module cmmod
-  use mpi
   implicit none
 
   integer, parameter :: l=101, m=5, n=32 ! original:n=21
@@ -31,62 +30,27 @@ module cmmod
   ! cmlslz
   real(8) :: zcoef(lm,7,n), zb(lm,n), zx(lm2,n2)
 
-  ! Variables for MPI
-  integer :: myrank, nprocs, ierr
-  integer :: leftnode, rightnode
-  integer, dimension(MPI_STATUS_SIZE) :: istat
-  integer :: nstart, nstart2, nend, n1end, n2end
+  ! Variables for XMP
+  integer :: myrank, nprocs
+
+  ! Built-in of XMP
+  integer :: xmp_node_num, xmp_all_node_num
 
 contains
-  subroutine initialize_mpi
+  subroutine initialize_xmp
 
-    ! initialize MPI
-    call mpi_init(ierr)
-    call mpi_comm_size(MPI_COMM_WORLD, nprocs, ierr)
-    call mpi_comm_rank(MPI_COMM_WORLD, myrank, ierr)
-
-    ! initialize Variables for parallel
-
-    ! leftnode & rightnode
-    if(myrank == 0) then
-       leftnode = MPI_PROC_NULL
-    else
-       leftnode = myrank-1
-    end if
-
-    if(myrank == nprocs-1) then
-       rightnode = MPI_PROC_NULL
-    else
-       rightnode = myrank+1
-    end if
-
-    ! nstart & nstart2
-    nstart = (myrank * n / nprocs) + 1
-
-    if(myrank == 0) then
-       nstart2 = 2
-    else
-       nstart2 = nstart
-    end if
-
-    ! nend, n1end & n2end
-    nend = (myrank+1) * n / nprocs
+    ! XMP directives
+    !$xmp nodes n(*)
+    !$xmp template t(n)
+    !$xmp distribute t(block) onto n
+    !$xmp align (*,*,k) with t(k) :: u, v, w, u1, v1, w1, p
+    !$xmp align (*,*,k) with t(k) :: wk1, wk2, wk3, dfs, zcoef
+    !$xmp align (*,j) with t(j) :: zb, zx
     
-    if(myrank .ne. nprocs-1) then
-       n1end = nend
-       n2end = nend
-    else
-       n1end = n1
-       n2end = n2
-    end if
+    ! initialize Variables for parallel
+    myrank = xmp_node_num() ! start from not 0 but 1
+    nprocs = xmp_all_node_num()
 
-  end subroutine initialize_mpi
-
-  subroutine finalize_mpi
-
-    call mpi_finalize(ierr)
-
-  end subroutine finalize_mpi
-
+  end subroutine initialize_xmp
 
 end module cmmod
