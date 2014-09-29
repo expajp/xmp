@@ -68,7 +68,7 @@
         == SOR4C ==    300        0.869569E-02
         == SOR4C ==    300        0.968978E-02
         == SOR4C ==    300        0.989742E-02
- Loop =            1
+ Loop =  1
  Maximum velocity at outlet  :     1.89090E+00    1.26156E+00
         == SOR4C ==    300        0.937036E-02
         == SOR4C ==    300        0.820701E-02
@@ -120,7 +120,7 @@
         == SOR4C ==    300        0.117273E-02
         == SOR4C ==    300        0.103603E-02
         == SOR4C ==    300        0.830344E-03
- Loop =            2
+ Loop =  2
  Maximum velocity at outlet  :     1.80388E+00    1.38844E+00
         == SOR4C ==    300        0.575826E-03
         == SOR4C ==    300        0.294334E-03
@@ -172,7 +172,7 @@
         == SOR4C ==    300        0.518853E-04
         == SOR4C ==    300        0.161866E-04
         == SOR4C ==    300        0.209111E-04
- Loop =            3
+ Loop =  3
  Maximum velocity at outlet  :     1.60592E+00    1.44833E+00
         == SOR4C ==    300        0.560633E-04
         == SOR4C ==    300        0.875166E-04
@@ -224,7 +224,7 @@
         == SOR4C ==    300        0.221838E-04
         == SOR4C ==    300        0.261169E-04
         == SOR4C ==    300        0.283906E-04
- Loop =            4
+ Loop =  4
  Maximum velocity at outlet  :     1.53884E+00    1.47531E+00
         == SOR4C ==    300        0.294894E-04
         == SOR4C ==    300        0.297760E-04
@@ -276,7 +276,7 @@
         == SOR4C ==    300        0.106019E-04
         == SOR4C ==    300        0.100037E-04
         == SOR4C ==     59        0.998850E-05
- Loop =            5
+ Loop =  5
  Maximum velocity at outlet  :     1.51481E+00    1.48737E+00
         == SOR4C ==    128        0.999704E-05
         == SOR4C ==    140        0.999859E-05
@@ -328,7 +328,7 @@
         == SOR4C ==    175        0.999100E-05
         == SOR4C ==     74        0.998976E-05
         == SOR4C ==     35        0.997489E-05
- Loop =            6
+ Loop =  6
  Maximum velocity at outlet  :     1.50521E+00    1.49275E+00
         == SOR4C ==      0        0.999118E-05
         == SOR4C ==      0        0.999868E-05
@@ -380,7 +380,7 @@
         == SOR4C ==      1        0.999126E-05
         == SOR4C ==      0        0.998821E-05
         == SOR4C ==      0        0.998589E-05
- Loop =            7
+ Loop =  7
  Maximum velocity at outlet  :     1.50079E+00    1.49515E+00
         == SOR4C ==      0        0.998856E-05
         == SOR4C ==      0        0.999113E-05
@@ -432,7 +432,7 @@
         == SOR4C ==      0        0.999337E-05
         == SOR4C ==      2        0.989279E-05
         == SOR4C ==      0        0.989425E-05
- Loop =            8
+ Loop =  8
  Maximum velocity at outlet  :     1.49881E+00    1.49622E+00
         == SOR4C ==      0        0.993879E-05
         == SOR4C ==    300        0.104974E-04
@@ -484,7 +484,7 @@
         == SOR4C ==      0        0.947984E-05
         == SOR4C ==      0        0.950867E-05
         == SOR4C ==      0        0.952811E-05
- Loop =            9
+ Loop =  9
  Maximum velocity at outlet  :     1.49839E+00    1.49670E+00
         == SOR4C ==      0        0.954093E-05
         == SOR4C ==      0        0.954903E-05
@@ -536,7 +536,7 @@
         == SOR4C ==      0        0.983119E-05
         == SOR4C ==      0        0.998962E-05
         == SOR4C ==    300        0.882667E-04
- Loop =           10
+ Loop =  10
  Maximum velocity at outlet  :     1.49744E+00    1.49682E+00
         == SOR4C ==    300        0.858091E-04
         == SOR4C ==    300        0.701491E-04
@@ -588,7 +588,7 @@
         == SOR4C ==    300        0.592656E-04
         == SOR4C ==    300        0.686299E-04
         == SOR4C ==    300        0.721425E-04
- Loop =           11
+ Loop =  11
  Maximum velocity at outlet  :     1.49528E+00    1.49694E+00
         == SOR4C ==    300        0.701845E-04
         == SOR4C ==    300        0.634033E-04
@@ -640,7 +640,7 @@
         == SOR4C ==      0        0.931754E-05
         == SOR4C ==      0        0.955065E-05
         == SOR4C ==      0        0.968287E-05
- Loop =           12
+ Loop =  12
  Maximum velocity at outlet  :     1.49132E+00    1.49700E+00
         == SOR4C ==      0        0.976707E-05
         == SOR4C ==      0        0.981560E-05
@@ -692,7 +692,7 @@
         == SOR4C ==    300        0.533855E-04
         == SOR4C ==    300        0.398304E-04
         == SOR4C ==    300        0.246651E-04
- Loop =           13
+ Loop =  13
  Maximum velocity at outlet  :     1.48976E+00    1.49707E+00
         == SOR4C ==     35        0.998100E-05
         == SOR4C ==      2        0.972107E-05
@@ -744,7 +744,7 @@
         == SOR4C ==    300        0.819463E-04
         == SOR4C ==    300        0.802590E-04
         == SOR4C ==    300        0.727780E-04
- Loop =           14
+ Loop =  14
  Maximum velocity at outlet  :     1.49367E+00    1.49711E+00
         == SOR4C ==    300        0.606449E-04
         == SOR4C ==    300        0.452287E-04
@@ -796,7 +796,7 @@
         == SOR4C ==    300        0.652191E-04
         == SOR4C ==    300        0.718001E-04
         == SOR4C ==    300        0.723532E-04
- Loop =           15
+ Loop =  15
  Maximum velocity at outlet  :     1.49742E+00    1.49712E+00
         == SOR4C ==    300        0.675403E-04
         == SOR4C ==    300        0.582478E-04
@@ -848,7 +848,7 @@
         == SOR4C ==      0        0.961140E-05
         == SOR4C ==      0        0.989503E-05
         == SOR4C ==    300        0.748905E-04
- Loop =           16
+ Loop =  16
  Maximum velocity at outlet  :     1.50198E+00    1.49712E+00
         == SOR4C ==    300        0.795495E-04
         == SOR4C ==    300        0.775758E-04
@@ -900,7 +900,7 @@
         == SOR4C ==      1        0.684200E-05
         == SOR4C ==      0        0.926297E-05
         == SOR4C ==    300        0.602442E-04
- Loop =           17
+ Loop =  17
  Maximum velocity at outlet  :     1.50472E+00    1.49711E+00
         == SOR4C ==    300        0.702386E-04
         == SOR4C ==    300        0.742171E-04
@@ -952,7 +952,7 @@
         == SOR4C ==      9        0.963732E-05
         == SOR4C ==      2        0.718022E-05
         == SOR4C ==      0        0.906957E-05
- Loop =           18
+ Loop =  18
  Maximum velocity at outlet  :     1.50670E+00    1.49708E+00
         == SOR4C ==      0        0.928726E-05
         == SOR4C ==      0        0.970439E-05
@@ -1004,7 +1004,7 @@
         == SOR4C ==    300        0.520690E-04
         == SOR4C ==    300        0.319920E-04
         == SOR4C ==    300        0.113841E-04
- Loop =           19
+ Loop =  19
  Maximum velocity at outlet  :     1.50721E+00    1.49705E+00
         == SOR4C ==      3        0.655787E-05
         == SOR4C ==      1        0.870519E-05
@@ -1056,5 +1056,5 @@
         == SOR4C ==    300        0.886635E-04
         == SOR4C ==    300        0.852610E-04
         == SOR4C ==    300        0.756416E-04
- Loop =           20
+ Loop =  20
  Maximum velocity at outlet  :     1.50160E+00    1.49700E+00
