@@ -10,6 +10,7 @@ program  miflow
 
   integer :: loopo, loopi
   integer :: lh, mh, nh
+  integer :: k
   real(8) :: pcal
 
   ! character  filenm*32
@@ -49,6 +50,11 @@ program  miflow
 !      write(6,'(5e15.5)') (u(l ,mh, k),k=2,n1)
 !      write(6,'(5e15.5)') (p(i ,mh,nh),i=2,l1)
      
+  end do
+
+  ! output
+  do k = nstart, n2end
+     write(*, '(i3, e15.5)') k, u(l, m/2+1, k)
   end do
 
 
