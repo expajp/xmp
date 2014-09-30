@@ -1,5 +1,4 @@
 subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, nprocs )
-  use mpi
   implicit none
 
   integer :: l, lm, n, maxitr
@@ -14,40 +13,14 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
   integer :: ierr
   integer :: myrank, nprocs
   integer :: leftnode, rightnode
-  integer, dimension(MPI_STATUS_SIZE) :: istat
   
-  integer :: nstart, nend
-
-
-  ! initialize Variables for parallel
-  if(myrank == 0) then
-     leftnode = MPI_PROC_NULL
-  else
-     leftnode = myrank-1
-  end if
-
-  if(myrank == nprocs-1) then
-     rightnode = MPI_PROC_NULL
-  else
-     rightnode = myrank+1
-  end if
-
   lm2 = lm+2*l
-
-  ! set distribution
-  nstart = ( n / nprocs ) * myrank + 1
-
-  if(myrank .ne. nprocs-1) then
-     nend = ( n / nprocs ) * (myrank+1)
-  else 
-     nend = n
-  end if
 
   ! start calculation
 
   bmax  =  0.0d0
   bmax_local = 0.0d0
-  do k = nstart, nend
+  do k = 1, n
      do ip = 1, lm
         bmax_local  =  max( bmax_local, abs( b(ip,k) ) )
      end do
@@ -63,7 +36,7 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
 
   res  =  0.0d0
   res_local = 0.0d0
-  do k = nstart, nend
+  do k = 1, n
 
      kp  =  k + 1
 
@@ -106,7 +79,7 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
   if(mod(nstart,2) /= 1) write(*, *) "an error occured."
 
   ! data has been received in the previous line of 'res = 0.0d0'
-  do k = nstart, nend, 2 ! nstart is needed to be an odd number.
+  do k = 1, n, 2 ! nstart is needed to be an odd number.
      kp  =  k + 1
 
      do ip = 1, lm, 2
@@ -146,7 +119,7 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
        x(1, nend+2), lm2, MPI_REAL8, rightnode, 100, &
        MPI_COMM_WORLD, istat, ierr)  
 
-  do k = nstart+1, nend, 2
+  do k = 2, n, 2
 
      kp  =  k + 1
 
@@ -188,7 +161,7 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
 
   res  =  0.0d0
   res_local = 0.0d0
-  do k = nstart, nend
+  do k = 1, n
 
      kp  =  k + 1
 

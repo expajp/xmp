@@ -67,8 +67,9 @@ subroutine  calcw1
 
   end if
 
+
   ! calculate
-  do k = nstart2, nend
+  do k = 2, n
      do j = 2, m1
         do i = 1, l1
 
@@ -79,13 +80,11 @@ subroutine  calcw1
               wk1(i,j,k) = cdt2dx*utmp*w(i+1,j  ,k  )
            end if
 
-           if(u(i,j,k+1) == 0.0d0) write(*, *) "error occured in calcw1 01"
-
         end do
      end do
   end do
 
-  do k = nstart2, nend
+  do k = 2, n
      do j = 1, m1
         do i = 2, l1
 
@@ -100,7 +99,7 @@ subroutine  calcw1
      end do
   end do
 
-  do k = nstart, nend
+  do k = 1, n
      do j = 2, m1
         do i = 2, l1
 
@@ -123,7 +122,7 @@ subroutine  calcw1
        w(1, 1, nstart2-1), l2*m2, MPI_REAL8, leftnode, 100, &
        MPI_COMM_WORLD, istat, ierr)
 
-  do k = nstart2, nend
+  do k = 2, n
      do j = 2, m1
         do i = 2, l1
            dfs(i,j,k) =  dfxore*(  w(i+1,j  ,k  ) - 2.0d0*w(i,j,k) &
@@ -144,7 +143,7 @@ subroutine  calcw1
        wk3(1, 1, nstart2-1), l1*m1, MPI_REAL8, leftnode, 100, &
        MPI_COMM_WORLD, istat, ierr)
 
-  do k = nstart2, nend
+  do k = 2, n
      do j = 2, m1
         do i = 2, l1
            w1(i,j,k)  =  w(i,j,k) + dfs(i,j,k) &

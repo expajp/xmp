@@ -48,7 +48,7 @@ subroutine  initvr
   eps     =  1.0e-5
 
 
-  do k = nstart2, n1end
+  do k = 2, n1
      do j = 2, m1
         do i = 2, l
            u(i,j,k)  =  uinit

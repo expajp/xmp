@@ -27,7 +27,7 @@ subroutine  datain
      write(6,6000)  l, m, n, xlen, ylen, zlen, dx, dy, dz, dt, re
   end if
 
-!  write(6,7000) nprocs, myrank, nstart, nend, nstart2, n1end, n2end
+!  write(6,7000) nprocs, myrank
 
 6000 format(5x,20('=')/ &
           5x,'  MiFlow (Ver 1.1)'/ &
@@ -44,10 +44,7 @@ subroutine  datain
 
 7000 format( &
           5x,'number of nodes          :',i5/ &
-          5x,'My rank                  :',i5/ &
-          5x,'nstart:nend              :',i5,':',i5/ &
-          5x,'nstart2                  :',i5/ &
-          5x,'n1end:n2end              :',i5,':',i5//)
+          5x,'My rank                  :',i5//)
 
       
   return

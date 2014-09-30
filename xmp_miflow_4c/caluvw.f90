@@ -24,7 +24,7 @@ subroutine  caluvw
 
   
   ! calculate
-  do k = nstart, nend
+  do k = 1, n
 
      ip  =  0
 
@@ -50,7 +50,7 @@ subroutine  caluvw
 
   ! ---( put the solution into presure variable "p" )---------------------
 
-  do k = nstart2, n1end
+  do k = 2, n1
 
      ip  =  0
 
@@ -66,7 +66,7 @@ subroutine  caluvw
 
   ! ---( Velocity correction )--------------------------------------------
 
-  do k = nstart2, n1end
+  do k = 2, n1
      do j = 2, m1
         do i = 2, l
            u(i,j,k) = u1(i,j,k) - dtodx*( p(i+1,j  ,k  ) - p(i,j,k) )
@@ -74,7 +74,7 @@ subroutine  caluvw
      end do
   end do
 
-  do k = nstart2, n1end
+  do k = 2, n1
      do j = 2, m
         do i = 2, l1
            v(i,j,k) = v1(i,j,k) - dtody*( p(i  ,j+1,k  ) - p(i,j,k) )
@@ -87,7 +87,7 @@ subroutine  caluvw
        p(1, 1, nend+1), l2*m2, MPI_REAL8, rightnode, 100, &
        MPI_COMM_WORLD, istat, ierr)
 
-  do k = nstart2, nend
+  do k = 2, n
      do j = 2, m1
         do i = 2, l1
            w(i,j,k) = w1(i,j,k) - dtodz*( p(i  ,j  ,k+1) - p(i,j,k) )

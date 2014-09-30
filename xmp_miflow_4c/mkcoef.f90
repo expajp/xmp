@@ -8,7 +8,7 @@ subroutine  mkcoef
 
   ! --- ( for ilsolv = 5 )------------------------------------------------
 
-  do  k = nstart, nend
+  do  k = 1, n
 
      ip  =  0
 
@@ -30,7 +30,7 @@ subroutine  mkcoef
   end do
 
 
-  do k = nstart, nend
+  do k = 1, n
      do ip = 1, lm
 
         zcoef(ip,4,k)  =  - zcoef(ip,1,k) - zcoef(ip,2,k) &

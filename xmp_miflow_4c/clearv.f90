@@ -6,7 +6,7 @@ subroutine  clearv
   integer :: i, j, k
   integer :: ip!, kp
 
-  do k = nstart, n2end
+  do k = 1, n2
      do j = 1, m2
         do i = 1, l1
            u (i,j,k)  =  0.0d0
@@ -15,7 +15,7 @@ subroutine  clearv
      end do
   end do
 
-  do k = nstart, n2end
+  do k = 1, n2
      do j = 1, m1
         do i = 1, l2
            v (i,j,k)  =  0.0d0
@@ -24,7 +24,7 @@ subroutine  clearv
      end do
   end do
 
-  do k = nstart, n1end
+  do k = 1, n1
      do j = 1, m2
         do i = 1, l2
            w (i,j,k)  =  0.0d0
@@ -33,7 +33,7 @@ subroutine  clearv
      end do
   end do
 
-  do k = nstart, n2end
+  do k = 1, n2
      do j = 1, m2
         do i = 1, l2
            p (i,j,k)  =  0.0d0
@@ -42,7 +42,7 @@ subroutine  clearv
   end do
 
 
-  do k = nstart, n1end
+  do k = 1, n1
      do j = 1, m1
         do i = 1, l1
            wk1(i,j,k)  =  0.0d0
@@ -53,7 +53,7 @@ subroutine  clearv
      end do
   end do
 
-  do k = nstart, nend
+  do k = 1, n
      do ip = 1, lm
         zcoef(ip,1,k)  =  0.0d0
         zcoef(ip,2,k)  =  0.0d0
@@ -66,8 +66,8 @@ subroutine  clearv
      end do
   end do
 
-  do k = nstart, nend
-!  do kp = nstart, nend ! 一応
+  do k = 1, n
+!  do kp = 1, n ! 一応
      do ip = 1, lm2
         zx(ip,k)       =  0.0d0 ! miss?
      end do

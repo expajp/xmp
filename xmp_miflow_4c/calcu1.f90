@@ -10,7 +10,7 @@ subroutine  calcu1
 
   ! -----( upwind )-------------------------------------------------------
 
-  do k = nstart2, n1end
+  do k = 2, n1
      do j = 2, m1
         do i = 1, l
 
@@ -25,7 +25,7 @@ subroutine  calcu1
      end do
   end do
 
-  do k = nstart2, n1end
+  do k = 2, n1
      do j = 1, m1
         do i = 2, l
 
@@ -45,7 +45,7 @@ subroutine  calcu1
        u(1, 1, n1end+1), l1*m2, MPI_REAL8, rightnode, 100, &
        MPI_COMM_WORLD, istat, ierr)
 
-  do k = nstart, n1end
+  do k = 1, n1
      do j = 2, m1
         do i = 2, l
 
@@ -68,7 +68,7 @@ subroutine  calcu1
        u(1, 1, nstart2-1), l1*m2, MPI_REAL8, leftnode, 100, &
        MPI_COMM_WORLD, istat, ierr)
 
-  do k = nstart2, n1end
+  do k = 2, n1
      do j = 2, m1
         do i = 2, l
            dfs(i,j,k) =  dfxore*(  u(i+1,j  ,k  ) - 2.0d0*u(i,j,k) &
@@ -89,7 +89,7 @@ subroutine  calcu1
        wk3(1, 1, nstart2-1), l1*m1, MPI_REAL8, leftnode, 100, &
        MPI_COMM_WORLD, istat, ierr)
 
-  do k = nstart2, n1end
+  do k = 2, n1
      do j = 2, m1
         do i = 2, l
            u1(i,j,k)  =  u(i,j,k) + dfs(i,j,k) &

@@ -7,14 +7,14 @@
 
   ! ---( BC for velocity <u> )--------------------------------------------
 
-  do k = nstart2, n1end
+  do k = 2, n1
      do j = 2, m1
         u( 1, j, k)  =   uinit
         u(l1, j, k)  =   u(l,j,k)
      end do
   end do
 
-  do k = nstart2, n1end
+  do k = 2, n1
      do i = 2, l
         u( i, 1, k)  =   u( i, 2, k)
         u( i,m2, k)  =   u( i,m1, k)
@@ -32,14 +32,14 @@
 
   ! ---( BC for velocity <v> )--------------------------------------------
 
-  do k = nstart2, n1end
+  do k = 2, n1
      do j = 2, m
         v( 1, j, k)  =  -v( 2,j,k)
         v(l2, j, k)  =   v(l1,j,k)
      end do
   end do
 
-  do k = nstart2, n1end
+  do k = 2, n1
      do i = 2, l1
         v( i, 1, k)  =   v( i, 2, k)
         v( i,m1, k)  =   v( i, m, k)
@@ -57,14 +57,14 @@
 
   ! ---( BC for velocity <w> )--------------------------------------------
 
-  do k = nstart2, nend
+  do k = 2, n
      do j = 2, m1
         w( 1, j, k)  =  -w( 2,j,k)
         w(l2, j, k)  =   w(l1,j,k)
      end do
   end do
 
-  do k = nstart2, nend
+  do k = 2, n
      do i = 2, l1
         w( i, 1, k)  =   w( i, 2, k)
         w( i,m2, k)  =   w( i,m1, k)

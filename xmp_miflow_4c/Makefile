@@ -28,4 +28,4 @@ $(PMODO): $(PMOD)
 	$(FC) $(FFLAGS) -c $^
 
 clean:
-	rm -f core *.o *.mod jobname.o* core-F_Front.* $(ALLOBJS) *~ #*#
+	rm -f core *.o *.mod *.xmod jobname.o* core-F_Front.* $(ALLOBJS) *~ #*#
