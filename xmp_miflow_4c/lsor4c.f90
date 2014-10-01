@@ -9,12 +9,21 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
   integer :: k, ip, kp, ix, iter
   real(8) :: bmax_local, bmax, res_local, res, rtmp, xtmp
 
-  ! Variables for MPI
-  integer :: ierr
+  ! Variables for XMP
   integer :: myrank, nprocs
-  integer :: leftnode, rightnode
+  integer :: dist(4) = (/8,8,8,10/)
   
-  lm2 = lm+2*l
+  ! XMP directives
+  !$xmp nodes n(4)
+  !$xmp template t(34)
+  !$xmp distribute t(gblock(dist)) onto n
+
+  !$xmp align (*,*,k) with t(k) :: coef
+  !$xmp align (*,j) with t(j) :: b, x
+
+  !$xmp shadow x(*,2)
+
+  lm2 = lm+2*l ! いる？
 
   ! start calculation
 
