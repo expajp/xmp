@@ -5,9 +5,9 @@ subroutine initw
   integer :: i, j, k
   real(8) :: wmax
 
-  integer :: myrank, xmp_node_num
+  !integer :: myrank, xmp_node_num
 
-  myrank = xmp_node_num()
+  !myrank = xmp_node_num()
 
   wmax = 0.0d0
 

@@ -1,5 +1,4 @@
 subroutine  caluvw
-
   use cmmod
   implicit none
 
@@ -8,22 +7,14 @@ subroutine  caluvw
 
   ! ---( Make right hand side of system of linear equation )--------------
   
+  ! sync for [uvw]1(*, *, k+1)
+  !$xmp reflect (u1)
+  !$xmp reflect (v1)
+  !$xmp reflect (w1)
 
-  ! sendrecv for k+1
-  call mpi_sendrecv(u1(1, 1, nstart), l1*m2, MPI_REAL8, leftnode, 100, &
-       u1(1, 1, nend+1), l1*m2, MPI_REAL8, rightnode, 100, &
-       MPI_COMM_WORLD, istat, ierr)
-
-  call mpi_sendrecv(v1(1, 1, nstart), l2*m1, MPI_REAL8, leftnode, 100, &
-       v1(1, 1, nend+1), l2*m1, MPI_REAL8, rightnode, 100, &
-       MPI_COMM_WORLD, istat, ierr)
-
-  call mpi_sendrecv(w1(1, 1, nstart), l2*m2, MPI_REAL8, leftnode, 100, &
-       w1(1, 1, nend+1), l2*m2, MPI_REAL8, rightnode, 100, &
-       MPI_COMM_WORLD, istat, ierr)
-
-  
   ! calculate
+
+  !$xmp loop on t(k)
   do k = 1, n
 
      ip  =  0
@@ -50,6 +41,7 @@ subroutine  caluvw
 
   ! ---( put the solution into presure variable "p" )---------------------
 
+  !$xmp loop on t(k)
   do k = 2, n1
 
      ip  =  0
@@ -66,6 +58,7 @@ subroutine  caluvw
 
   ! ---( Velocity correction )--------------------------------------------
 
+  !$xmp loop on t(k)
   do k = 2, n1
      do j = 2, m1
         do i = 2, l
@@ -74,6 +67,7 @@ subroutine  caluvw
      end do
   end do
 
+  !$xmp loop on t(k)
   do k = 2, n1
      do j = 2, m
         do i = 2, l1
@@ -82,11 +76,10 @@ subroutine  caluvw
      end do
   end do
 
-  ! sendrecv for p(*, *, k+1)
-  call mpi_sendrecv(p(1, 1, nstart), l2*m2, MPI_REAL8, leftnode, 100, &
-       p(1, 1, nend+1), l2*m2, MPI_REAL8, rightnode, 100, &
-       MPI_COMM_WORLD, istat, ierr)
+  ! sync for p(*, *, k+1)
+  !$xmp reflect (p)
 
+  !$xmp loop on t(k)
   do k = 2, n
      do j = 2, m1
         do i = 2, l1

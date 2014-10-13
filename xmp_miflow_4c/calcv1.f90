@@ -11,6 +11,7 @@ subroutine  calcv1
 
   ! -----( upwind )-------------------------------------------------------
 
+  !$xmp loop on t(k)
   do k = 2, n1
      do j = 2, m
         do i = 1, l1
@@ -26,6 +27,7 @@ subroutine  calcv1
      end do
   end do
 
+  !$xmp loop on t(k)
   do k = 2, n1
      do j = 1, m
         do i = 2, l1
@@ -41,11 +43,10 @@ subroutine  calcv1
      end do
   end do
 
-  ! sendrecv for v(*, *, k+1)
-  call mpi_sendrecv(v(1, 1, nstart), l2*m1, MPI_REAL8, leftnode, 100, &
-       v(1, 1, n1end+1), l2*m1, MPI_REAL8, rightnode, 100, &
-       MPI_COMM_WORLD, istat, ierr)
+  ! sync for v(*, *, k+1), v(*, *, k-1)
+  !$xmp reflect (v)
 
+  !$xmp loop on t(k)
   do k = 1, n1
      do j = 2, m
         do i = 2, l1
@@ -61,14 +62,9 @@ subroutine  calcv1
      end do
   end do
 
-
   ! ===( Diffusion term )=================================================
 
-  ! sendrecv for v(*, *, k-1)
-  call mpi_sendrecv(v(1, 1, n1end), l2*m1, MPI_REAL8, rightnode, 100, &
-       v(1, 1, nstart2-1), l2*m1, MPI_REAL8, leftnode, 100, &
-       MPI_COMM_WORLD, istat, ierr)
-
+  !$xmp loop on t(k)
   do k = 2, n1
      do j = 2, m
         do i = 2, l1
@@ -88,10 +84,9 @@ subroutine  calcv1
   ! ===( the first step )=================================================
 
   ! sendrecv for wk3(*, *, k-1)
-  call mpi_sendrecv(wk3(1, 1, n1end), l1*m1, MPI_REAL8, rightnode, 100, &
-       wk3(1, 1, nstart2-1), l1*m1, MPI_REAL8, leftnode, 100, &
-       MPI_COMM_WORLD, istat, ierr)
+  !$xmp reflect (wk3)
 
+  !$xmp loop on t(k)
   do k = 2, n1
      do j = 2, m
         do i = 2, l1

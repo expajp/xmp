@@ -47,7 +47,7 @@ subroutine  initvr
   s1omg   =  1.0d0 - omega
   eps     =  1.0e-5
 
-
+  !$xmp loop on t(k)
   do k = 2, n1
      do j = 2, m1
         do i = 2, l
@@ -55,10 +55,6 @@ subroutine  initvr
         end do
      end do
   end do
-
-!  write(6, '(5x,"myrank = ", i3, 5x, "nstart2-1:nstart2", e15.6, ":", e15.6)') myrank, u(2, 2, nstart2-1), u(2, 2, nstart2) 
-!  write(6, '(5x,"myrank = ", i3, 5x, "n1end:n1end+1", e15.6, ":", e15.6)') myrank, u(2, 2, n1end), u(2, 2, n1end+1) 
-!  write(6, '(5x, "uinit = ",e15.6, //)') uinit
 
   return
   

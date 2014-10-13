@@ -32,37 +32,34 @@ module cmmod
 
   ! Variables for XMP
   integer :: myrank, nprocs
+  integer :: dist(4) = (/8,8,8,10/)
 
-  ! Built-in of XMP
-  integer :: xmp_node_num, xmp_all_node_num
+  ! XMP directives
+  !$xmp nodes n(4)
+  !$xmp template t(34)
+  !$xmp distribute t(gblock(dist)) onto n
+  
+  !$xmp align (*,*,k) with t(k) :: u, v, w, u1, v1, w1, p
+  !$xmp align (*,*,k) with t(k) :: wk1, wk2, wk3, dfs, zcoef
+  !$xmp align (*,j) with t(j) :: zb, zx
+  
+  !$xmp shadow u(*,*,1)
+  !$xmp shadow v(*,*,1)
+  !$xmp shadow w(*,*,1)
+  !$xmp shadow u1(*,*,1)
+  !$xmp shadow v1(*,*,1)
+  !$xmp shadow w1(*,*,1)
+  !$xmp shadow wk3(*,*,1)
+  !$xmp shadow p(*,*,1)
+  !$xmp shadow zx(*,2)
 
 contains
   subroutine initialize_xmp
-
-    integer :: dist(4) = (/8,8,8,10/)
-
-    ! XMP directives
-    !$xmp nodes n(4)
-    !$xmp template t(34)
-    !$xmp distribute t(gblock(dist)) onto n
-
-    !$xmp align (*,*,k) with t(k) :: u, v, w, u1, v1, w1, p
-    !$xmp align (*,*,k) with t(k) :: wk1, wk2, wk3, dfs, zcoef
-    !$xmp align (*,j) with t(j) :: zb, zx
-
-    !$xmp shadow u(*,*,1)
-    !$xmp shadow v(*,*,1)
-    !$xmp shadow w(*,*,1)
-    !$xmp shadow u1(*,*,1)
-    !$xmp shadow v1(*,*,1)
-    !$xmp shadow w1(*,*,1)
-    !$xmp shadow wk3(*,*,1)
-    !$xmp shadow p(*,*,1)
-    !$xmp shadow zx(*,2)
+    integer :: xmp_node_num, xmp_num_nodes
 
     ! initialize Variables for parallel
     myrank = xmp_node_num() ! start from not 0 but 1
-    nprocs = xmp_all_node_num()
+    nprocs = xmp_num_nodes()
 
   end subroutine initialize_xmp
 

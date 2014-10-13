@@ -5,9 +5,9 @@ subroutine initu
   integer :: i, j, k
   real(8) :: umax
 
-  integer :: myrank, xmp_node_num
+  !integer :: myrank, xmp_node_num
 
-  myrank = xmp_node_num()
+  !myrank = xmp_node_num()
 
   umax = 0.0d0
 
@@ -22,7 +22,7 @@ subroutine initu
   end do
 
 !$xmp barrier
-  ! write(*, *) "myrank = ", myrank
+  write(*,*) "myrank = ", myrank
   if(myrank == 1)  write(*,*) "umax = ", umax
 
 end subroutine initu

@@ -8,6 +8,7 @@ subroutine  mkcoef
 
   ! --- ( for ilsolv = 5 )------------------------------------------------
 
+  !$xmp loop on t(k)
   do  k = 1, n
 
      ip  =  0
@@ -29,13 +30,15 @@ subroutine  mkcoef
      end do
   end do
 
-
+  !$xmp loop on t(k)
   do k = 1, n
      do ip = 1, lm
 
         zcoef(ip,4,k)  =  - zcoef(ip,1,k) - zcoef(ip,2,k) &
              - zcoef(ip,3,k) + odx2 &
              - zcoef(ip,6,k) - zcoef(ip,7,k)
+
+        ! if(ip == 10) write(*, *) "zcoef(10, 4, ", k, ") = ", zcoef(10, 4, k), "myrank = ", myrank
 
         ! for Neumann condition        
         ! &                      - zcoef(ip,3,k) + zcoef(ip,5,k)

@@ -5,9 +5,9 @@ subroutine initv
   integer :: i, j, k
   real(8) :: vmax
 
-  integer :: myrank, xmp_node_num
+  !integer :: myrank, xmp_node_num
 
-  myrank = xmp_node_num()
+  !myrank = xmp_node_num()
 
   vmax = 0.0d0
 

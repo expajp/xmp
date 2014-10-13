@@ -20,16 +20,33 @@ program  miflow
   call  initvr
   call  mkcoef
 
+  ! write(*,*) "initialize_phaze rank:", myrank
+  ! if(myrank==1) write(*,*) "nprocs =", nprocs
+
+  !$xmp barrier
+
   do loopo = lpbgn, lpend
 
      do loopi = 1, linner
 
         call  setbnd
+        ! write(*,*) "setbnd rank:", myrank
+        !$xmp barrier
         call  calcu1
+        !write(*,*) "calcu1 rank:", myrank
+        !$xmp barrier
         call  calcv1
+        !write(*,*) "calcv1 rank:", myrank
+        !$xmp barrier
         call  calcw1
+        !write(*,*) "calcw1 rank:", myrank
+        !$xmp barrier
         call  setbcv
+        !write(*,*) "setbcv rank:", myrank
+        !$xmp barrier
         call  caluvw
+        !write(*,*) "caluvw rank:", myrank
+        !$xmp barrier
         
      end do
 
@@ -38,7 +55,7 @@ program  miflow
      nh = n/2 + 2
      pcal =  0.125*re*(p(l,mh,nh)-p(l1,mh,nh))*odx
 
-     if(myrank == int(nprocs/2)) then
+     if(myrank == int(nprocs/2+1)) then
         write(6,*) 'Loop = ', loopo
         write(6,'(a,1p,2e15.5)') &
              ' Maximum velocity at outlet  : ', pcal, u(l,mh,nh)

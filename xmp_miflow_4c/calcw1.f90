@@ -5,70 +5,19 @@ subroutine  calcw1
 
   integer :: i, j, k
   real(8) :: utmp, vtmp, wtmp
-  real(8), dimension(l2, m2, 3) :: sendbuf, recvbuf
-
 
   ! ===( Convection term )================================================
 
   ! -----( upwind )-------------------------------------------------------
 
-  ! initialize buffers
-  sendbuf = 0
-  recvbuf = 0
-
-  ! cram data to sendbuf
-  if(myrank /= 0) then
-
-     do j = 1, m2
-        do i = 1, l1
-           sendbuf(i, j, 1) = u(i, j, nstart)
-        end do
-     end do
-
-     do j = 1, m1
-        do i = 1, l2
-           sendbuf(i, j, 2) = v(i, j, nstart)
-        end do
-     end do
-
-     do j = 1, m2
-        do i = 1, l2
-           sendbuf(i, j, 3) = w(i, j, nstart)
-        end do
-     end do
-
-  end if
-
-  ! sendrecv for [uvw](*, k+1)
-  call mpi_sendrecv(sendbuf, l2*m2*3, MPI_REAL8, leftnode, 100, &
-       recvbuf, l2*m2*3, MPI_REAL8, rightnode, 100, &
-       MPI_COMM_WORLD, istat, ierr)
-
-  ! distribute data from recvbuf
-  if(myrank /= nprocs-1) then
-
-     do j = 1, m2
-        do i = 1, l1
-           u(i, j, nend+1) = recvbuf(i, j, 1)
-        end do
-     end do
-
-     do j = 1, m1
-        do i = 1, l2
-           v(i, j, nend+1) = recvbuf(i, j, 2)
-        end do
-     end do
-
-     do j = 1, m2
-        do i = 1, l2
-           w(i, j, nend+1) = recvbuf(i, j, 3)
-        end do
-     end do
-
-  end if
-
+  ! sync for [uvw](*, *, k+1), w(*, *, k-1)
+  !$xmp reflect (u)
+  !$xmp reflect (v)
+  !$xmp reflect (w)
 
   ! calculate
+
+  !$xmp loop on t(k)
   do k = 2, n
      do j = 2, m1
         do i = 1, l1
@@ -84,6 +33,7 @@ subroutine  calcw1
      end do
   end do
 
+  !$xmp loop on t(k)
   do k = 2, n
      do j = 1, m1
         do i = 2, l1
@@ -99,6 +49,7 @@ subroutine  calcw1
      end do
   end do
 
+  !$xmp loop on t(k)
   do k = 1, n
      do j = 2, m1
         do i = 2, l1
@@ -117,11 +68,7 @@ subroutine  calcw1
 
   ! ===( Diffusion term )=================================================
 
-  ! sendrecv for w(*, *, k-1)
-  call mpi_sendrecv(w(1, 1, nend), l2*m2, MPI_REAL8, rightnode, 100, &
-       w(1, 1, nstart2-1), l2*m2, MPI_REAL8, leftnode, 100, &
-       MPI_COMM_WORLD, istat, ierr)
-
+  !$xmp loop on t(k)
   do k = 2, n
      do j = 2, m1
         do i = 2, l1
@@ -130,7 +77,7 @@ subroutine  calcw1
                 + dfyore*(  w(i  ,j+1,k  ) - 2.0d0*w(i,j,k) &
                 + w(i  ,j-1,k  )                  ) &
                 + dfzore*(  w(i  ,j  ,k+1) - 2.0d0*w(i,j,k) &
-                + w(i  ,j  ,k-1)                  )!
+                + w(i  ,j  ,k-1)                  )
         end do
      end do
   end do
@@ -139,10 +86,9 @@ subroutine  calcw1
   ! ===( the first step )=================================================
 
   ! sendrecv for wk3(*, *, k-1)
-  call mpi_sendrecv(wk3(1, 1, nend), l1*m1, MPI_REAL8, rightnode, 100, &
-       wk3(1, 1, nstart2-1), l1*m1, MPI_REAL8, leftnode, 100, &
-       MPI_COMM_WORLD, istat, ierr)
+  !$xmp reflect (wk3)
 
+  !$xmp loop on t(k)
   do k = 2, n
      do j = 2, m1
         do i = 2, l1

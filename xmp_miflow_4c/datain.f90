@@ -23,7 +23,7 @@ subroutine  datain
   linner =  50
   maxitr =  299
 
-  if(myrank == 0) then
+  if(myrank == 1) then
      write(6,6000)  l, m, n, xlen, ylen, zlen, dx, dy, dz, dt, re
   end if
 
