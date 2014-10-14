@@ -37,6 +37,10 @@ module cmmod
   integer, dimension(MPI_STATUS_SIZE) :: istat
   integer :: nstart, nstart2, nend, n1end, n2end
 
+  ! Variables for calculating time
+  integer :: loopcount
+  real(8) :: caltime, comtime
+
 contains
   subroutine initialize_mpi
 
@@ -79,6 +83,10 @@ contains
        n1end = n1
        n2end = n2
     end if
+
+    loopcount = 0
+    caltime = 0.0d0
+    comtime = 0.0d0
 
   end subroutine initialize_mpi
 

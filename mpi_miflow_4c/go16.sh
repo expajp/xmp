@@ -1,6 +1,6 @@
 #!/bin/bash
 #PJM -N "jobname"
-#PJM -L "rscgrp=large"
+#PJM -L "rscgrp=medium"
 #PJM -L "node=16"
 #PJM -L "elapse=10:00"
 #PJM -j

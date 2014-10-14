@@ -10,7 +10,7 @@ program  miflow
 
   integer :: loopo, loopi
   integer :: lh, mh, nh
-  integer :: k
+  ! integer :: k
   real(8) :: pcal
 
   ! character  filenm*32
@@ -53,11 +53,15 @@ program  miflow
   end do
 
   ! output
-  do k = nstart, n2end
-     write(*, '(i3, e15.5)') k, u(l, m/2+1, k)
-  end do
+  !do k = nstart, n2end
+  !   write(*, '(i3, e15.5)') k, u(l, m/2+1, k)
+  !end do
 
-
+  ! calculation
+  write(*, *) "loop count : ", loopcount
+  write(*, *) "calculating time(s) : ", caltime
+  write(*, *) "communicating time(s) : ", comtime
+  
 !      filenm = '../Figure/snap'
 !      write( filenm(15:18), '(i4.4)' ) loopo
 !      open(10, file=filenm, form='unformatted')
