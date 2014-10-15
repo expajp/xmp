@@ -28,7 +28,7 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
   ! set distribution
   nstart = ( n / nprocs ) * (myrank-1) + 1
 
-  if(myrank .ne. nprocs-1) then
+  if(myrank .ne. nprocs) then
      nend = ( n / nprocs ) * (myrank)
   else 
      nend = n
@@ -130,7 +130,8 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
   ! (because kp = k + 1)
   !$xmp reflect(x) width (2)
 
-  do k = nstart, nend, 2
+  ! we cannot use 'loop' directive when data is ditributed by gblock
+  do k = nstart+1, nend, 2 ! start is needed to be an even number
 
      kp  =  k + 1
 
@@ -166,11 +167,10 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
 
   ! sendrecv for x(*, kp)
   ! x(*, kp+1) has received and x(*, nend+1) has been updated "in this node"
-  ! is it ok? -> not?
-  !x(1:lm2, nend+1)[myrank] = x(1:lm2, nend+1)[myrank+1]
-  !$xmp reflect(x) width (1)
+  ! is it ok?
 
   res  =  0.0d0
+
   !$xmp loop on t(k) reduction(max:res)
   do k = 1, n
 
