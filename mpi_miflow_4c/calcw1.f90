@@ -79,8 +79,6 @@ subroutine  calcw1
               wk1(i,j,k) = cdt2dx*utmp*w(i+1,j  ,k  )
            end if
 
-           if(u(i,j,k+1) == 0.0d0) write(*, *) "error occured in calcw1 01"
-
         end do
      end do
   end do

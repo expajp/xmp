@@ -102,9 +102,6 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
 
   iter  =  iter + 1
 
-
-  if(mod(nstart,2) /= 1) write(*, *) "an error occured."
-
   ! data has been received in the previous line of 'res = 0.0d0'
   do k = nstart, nend, 2 ! nstart is needed to be an odd number.
      kp  =  k + 1

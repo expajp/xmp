@@ -67,7 +67,7 @@ subroutine  clearv
   end do
 
   do k = nstart, nend
-!  do kp = nstart, nend ! 一応
+!  do kp = nstart, nend
      do ip = 1, lm2
         zx(ip,k)       =  0.0d0 ! miss?
      end do
