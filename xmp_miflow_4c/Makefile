@@ -2,7 +2,7 @@
 FC = xmpf90
 #FC = mpifrtpx
 
-FFLAGS =  -O2
+FFLAGS =  -O2 -I /opt/FJSVfxlang/1.2.1/include/mpi/fujitsu/
 
 PSRCS	= miflow.f90 clearv.f90 datain.f90 initvr.f90\
 	  mkcoef.f90 setbnd.f90 calcu1.f90 calcv1.f90 calcw1.f90\

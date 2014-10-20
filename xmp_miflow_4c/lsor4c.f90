@@ -1,4 +1,5 @@
 subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, nprocs )
+  include "mpif.h"
   implicit none
 
   integer :: l, lm, n, maxitr
@@ -10,8 +11,11 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
   real(8) :: bmax, res, rtmp, xtmp
 
   ! Variables for XMP
+  integer :: ierr
   integer :: myrank, nprocs
+  integer :: leftnode, rightnode
   integer :: nstart, nend
+  integer, dimension(MPI_STATUS_SIZE) :: istat
 
   integer :: dist(4) = (/8,8,8,10/)
   
@@ -25,6 +29,19 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
 
   !$xmp shadow x(*,2)
 
+  ! initialize Variables for parallel
+  if(myrank == 1) then
+     leftnode = MPI_PROC_NULL
+  else
+     leftnode = myrank-1
+  end if
+
+  if(myrank == nprocs) then
+     rightnode = MPI_PROC_NULL
+  else
+     rightnode = myrank+1
+  end if
+
   ! set distribution
   nstart = ( n / nprocs ) * (myrank-1) + 1
 
@@ -36,7 +53,7 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
 
   lm2 = lm+2*l
 
-  ! start calculation
+    ! start calculation
 
   bmax  =  0.0d0
 
@@ -168,6 +185,9 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
   ! sendrecv for x(*, kp)
   ! x(*, kp+1) has received and x(*, nend+1) has been updated "in this node"
   ! is it ok?
+  call mpi_sendrecv(x(1, nend+1), lm2, MPI_REAL8, rightnode, 100, &
+       x(1, nstart), lm2, MPI_REAL8, leftnode, 100, &
+       MPI_COMM_WORLD, istat, ierr)
 
   res  =  0.0d0
 
