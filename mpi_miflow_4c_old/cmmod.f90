@@ -1,9 +1,8 @@
 module cmmod
-  
   use mpi
   implicit none
 
-  integer, parameter :: l=101, m=5, n=21
+  integer, parameter :: l=101, m=5, n=32 ! original:n=21
 
   integer, parameter :: l1=l+1, m1=m+1, n1=n+1, l2=l+2, m2=m+2, n2=n+2
   integer, parameter :: lm=l*m, lmn=l*m*n, lm2=lm+2*l
@@ -36,10 +35,11 @@ module cmmod
   integer :: myrank, nprocs, ierr
   integer :: leftnode, rightnode
   integer, dimension(MPI_STATUS_SIZE) :: istat
+  integer :: nstart, nstart2, nend, n1end, n2end
 
-  integer :: nstart, nend, nchunk
-  integer :: n1start, n1end, n1chunk
-  integer :: n2start, n2end, n2chunk
+  ! Variables for calculating time
+  integer :: loopcount
+  real(8) :: caltime, comtime
 
 contains
   subroutine initialize_mpi
@@ -50,6 +50,8 @@ contains
     call mpi_comm_rank(MPI_COMM_WORLD, myrank, ierr)
 
     ! initialize Variables for parallel
+
+    ! leftnode & rightnode
     if(myrank == 0) then
        leftnode = MPI_PROC_NULL
     else
@@ -62,41 +64,31 @@ contains
        rightnode = myrank+1
     end if
 
+    ! nstart & nstart2
+    nstart = (myrank * n / nprocs) + 1
+
+    if(myrank == 0) then
+       nstart2 = 2
+    else
+       nstart2 = nstart
+    end if
+
+    ! nend, n1end & n2end
+    nend = (myrank+1) * n / nprocs
+    
+    if(myrank .ne. nprocs-1) then
+       n1end = nend
+       n2end = nend
+    else
+       n1end = n1
+       n2end = n2
+    end if
+
+    loopcount = 0
+    caltime = 0.0d0
+    comtime = 0.0d0
+
   end subroutine initialize_mpi
-
-  subroutine set_distribution
-
-    ! for n
-    nstart = n * myrank / nprocs + 1
-    nend = n * (myrank+1) / nprocs
-
-    if(myrank == nprocs-1) then
-       nchunk = n / nprocs + mod(n, nprocs)
-    else
-       nchunk = n / nprocs
-    end if
-
-    ! for n1
-    n1start = n1 * myrank / nprocs + 1
-    n1end = n1 * (myrank+1) / nprocs
-
-    if(myrank == nprocs-1) then
-       n1chunk = n1 / nprocs + mod(n1, nprocs)
-    else
-       n1chunk = n1 / nprocs
-    end if
-
-    ! for n2
-    n2start = n2 * myrank / nprocs + 1
-    n2end = n2 * (myrank+1) / nprocs
-
-    if(myrank == nprocs-1) then
-       n2chunk = n2 / nprocs + mod(n2, nprocs)
-    else
-       n2chunk = n2 / nprocs
-    end if
-
-  end subroutine set_distribution
 
   subroutine finalize_mpi
 

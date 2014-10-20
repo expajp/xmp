@@ -1,5 +1,6 @@
-FC = mpifrtpx
+#FC = gfortran
 #FC = xmpf90
+FC = mpifrtpx
 
 FFLAGS =  -O2
 

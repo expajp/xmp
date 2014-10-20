@@ -1,63 +1,65 @@
-      subroutine  initvr
+subroutine  initvr
 
-      use cmmod
+  use cmmod
+  implicit none
 
-      integer :: n1start_temp
+  integer :: i, j, k
+  integer :: nd2, md2
 
-      nd2     =  n/2 - 1
-      md2     =  m/2 - 1
-      lmnctr  =  l*m*nd2 + l*md2 + l
-      lmctr   =  l*md2 + l
-      nctr    =  nd2
-      
-      odt     =  1.0d0/dt
-      
-      odx     =  1.0d0/dx
-      ody     =  1.0d0/dy
-      odz     =  1.0d0/dz
-      odx2    =  odx*odx
-      ody2    =  ody*ody
-      odz2    =  odz*odz
+  nd2     =  n/2 - 1
+  md2     =  m/2 - 1
+  lmnctr  =  l*m*nd2 + l*md2 + l
+  lmctr   =  l*md2 + l
+  nctr    =  nd2
 
-      ore     =  1.0d0/re
+  odt     =  1.0d0/dt
 
-      dtodx   =  dt*odx
-      dtody   =  dt*ody
-      dtodz   =  dt*odz
-      
-      odtodx  =  odt*odx
-      odtody  =  odt*ody
-      odtodz  =  odt*odz
-      
-      cdt2dx  = -0.50d0*odx*dt
-      cdt2dy  = -0.50d0*ody*dt
-      cdt2dz  = -0.50d0*odz*dt
+  odx     =  1.0d0/dx
+  ody     =  1.0d0/dy
+  odz     =  1.0d0/dz
+  odx2    =  odx*odx
+  ody2    =  ody*ody
+  odz2    =  odz*odz
 
-      cdt4dx  = -0.25d0*odx*dt
-      cdt4dy  = -0.25d0*ody*dt
-      cdt4dz  = -0.25d0*odz*dt
+  ore     =  1.0d0/re
 
-      dfxore  =  ore*odx2*dt
-      dfyore  =  ore*ody2*dt
-      dfzore  =  ore*odz2*dt
+  dtodx   =  dt*odx
+  dtody   =  dt*ody
+  dtodz   =  dt*odz
 
-      omega   =  1.92d0
-      s1omg   =  1.0d0 - omega
-      eps     =  1.0e-5
-      
-      if(n1start == 1) then
-         n1start_temp = 2
-      else
-         n1start_temp = n1start
-      end if
+  odtodx  =  odt*odx
+  odtody  =  odt*ody
+  odtodz  =  odt*odz
 
-      do k = n1start_temp, n1end
-         do j = 2, m1
-            do i = 2, l
-               u(i,j,k)  =  uinit
-            end do
-         end do
-      end do
-      
-      return
-    end subroutine initvr
+  cdt2dx  = -0.50d0*odx*dt
+  cdt2dy  = -0.50d0*ody*dt
+  cdt2dz  = -0.50d0*odz*dt
+
+  cdt4dx  = -0.25d0*odx*dt
+  cdt4dy  = -0.25d0*ody*dt
+  cdt4dz  = -0.25d0*odz*dt
+
+  dfxore  =  ore*odx2*dt
+  dfyore  =  ore*ody2*dt
+  dfzore  =  ore*odz2*dt
+
+  omega   =  1.92d0
+  s1omg   =  1.0d0 - omega
+  eps     =  1.0e-5
+
+
+  do k = nstart2, n1end
+     do j = 2, m1
+        do i = 2, l
+           u(i,j,k)  =  uinit
+        end do
+     end do
+  end do
+
+!  write(6, '(5x,"myrank = ", i3, 5x, "nstart2-1:nstart2", e15.6, ":", e15.6)') myrank, u(2, 2, nstart2-1), u(2, 2, nstart2) 
+!  write(6, '(5x,"myrank = ", i3, 5x, "n1end:n1end+1", e15.6, ":", e15.6)') myrank, u(2, 2, n1end), u(2, 2, n1end+1) 
+!  write(6, '(5x, "uinit = ",e15.6, //)') uinit
+
+  return
+  
+end subroutine initvr
