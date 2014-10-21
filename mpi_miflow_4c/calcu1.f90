@@ -100,7 +100,6 @@ subroutine  calcu1
      end do
   end do
 
-
   return
 
 end subroutine calcu1

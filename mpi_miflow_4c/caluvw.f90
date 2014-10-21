@@ -46,8 +46,7 @@ subroutine  caluvw
 
   ! ---( Poison solver )--------------------------------------------------
 
-  call lsor4c( l, lm, n, eps, maxitr, zcoef, zb, zx, omega, s1omg, &
-       myrank, nprocs, loopcount, caltime, comtime )
+  call lsor4c( l, lm, n, eps, maxitr, zcoef, zb, zx, omega, s1omg, myrank, nprocs )
 
   ! ---( put the solution into presure variable "p" )---------------------
 

@@ -37,10 +37,6 @@ module cmmod
   integer, dimension(MPI_STATUS_SIZE) :: istat
   integer :: nstart, nstart2, nend, n1end, n2end
 
-  ! Variables for calculating time
-  integer :: loopcount
-  real(8) :: caltime, comtime
-
 contains
   subroutine initialize_mpi
 
@@ -65,16 +61,20 @@ contains
     end if
 
     ! nstart & nstart2
-    nstart = (myrank * n / nprocs) + 1
+    nstart2 = (myrank * n / nprocs) + 2
 
     if(myrank == 0) then
-       nstart2 = 2
+       nstart = 1
     else
-       nstart2 = nstart
+       nstart = nstart2
     end if
 
     ! nend, n1end & n2end
-    nend = (myrank+1) * n / nprocs
+    if(myrank == nprocs-1) then
+       nend = n
+    else
+       nend = (myrank+1) * n / nprocs + 1
+    end if
     
     if(myrank .ne. nprocs-1) then
        n1end = nend
@@ -83,10 +83,6 @@ contains
        n1end = n1
        n2end = n2
     end if
-
-    loopcount = 0
-    caltime = 0.0d0
-    comtime = 0.0d0
 
   end subroutine initialize_mpi
 

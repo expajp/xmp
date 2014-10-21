@@ -21,14 +21,23 @@
      end do
   end do
 
-  ! no effect to other nodes
-  do j = 2, m1
-     do i = 2, l
-        u( i, j, 1)  =  -u( i, j, 2)
-        u( i, j,n2)  =  -u( i, j,n1)
-     end do
-  end do
+  if(myrank == 0) then
 
+     do j = 2, m1
+        do i = 2, l
+           u( i, j, 1)  =  -u( i, j, 2)
+        end do
+     end do
+
+  else if(myrank == nprocs-1) then
+
+     do j = 2, m1
+        do i = 2, l
+           u( i, j,n2)  =  -u( i, j,n1)
+        end do
+     end do
+
+  end if
 
   ! ---( BC for velocity <v> )--------------------------------------------
 
@@ -46,13 +55,23 @@
      end do
   end do
 
-  ! no effect to other nodes
-  do j = 2, m
-     do i = 2, l1
-        v( i, j, 1)  =  -v( i, j, 2)
-        v( i, j,n2)  =  -v( i, j,n1)
+  if(myrank == 0) then
+
+     do j = 2, m
+        do i = 2, l1
+           v( i, j, 1)  =  -v( i, j, 2)
+        end do
      end do
-  end do
+
+  else if(myrank == nprocs-1) then
+
+     do j = 2, m
+        do i = 2, l1
+           v( i, j,n2)  =  -v( i, j,n1)
+        end do
+     end do
+
+  end if
 
 
   ! ---( BC for velocity <w> )--------------------------------------------
@@ -71,12 +90,24 @@
      end do
   end do
 
-  do j = 2, m1
-     do i = 2, l1
-        w( i, j, 1)  =   0.0d0
-        w( i, j,n1)  =   0.0d0
+  if(myrank == 0) then
+
+     do j = 2, m1
+        do i = 2, l1
+           w( i, j, 1)  =   0.0d0
+        end do
      end do
-  end do
+
+  else if(myrank == nprocs-1) then
+
+     do j = 2, m1
+        do i = 2, l1
+           w( i, j,n1)  =   0.0d0
+        end do
+     end do
+
+  end if
+
 
   ! ----------------------------------------------------------------------
 
