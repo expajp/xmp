@@ -10,7 +10,7 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
 
   ! Variables for XMP
   integer :: myrank, nprocs
-  integer :: npstart, npend
+  !integer :: npstart, npend
   integer :: dist(4) = (/9,8,8,9/)
   
   ! XMP directives
@@ -26,8 +26,8 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
   !$xmp shadow b(*,1)
 
   ! "p"
-  npstart = ((myrank-1) * n / nprocs) + 1
-  npend = myrank * n / nprocs
+  !npstart = ((myrank-1) * n / nprocs) + 1
+  !npend = myrank * n / nprocs
 
   ! start calculation
 
@@ -35,6 +35,7 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
 
   !$xmp loop on t(k) reduction(max:bmax)
   do k = 1, n
+     ! write(*, *) "bmax: k = ", k, "myrank = ", myrank
      do ip = 1, lm
         bmax  =  max( bmax, abs( b(ip,k) ) )
      end do
@@ -46,20 +47,21 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
 
   res  =  0.0d0
 
-  !$xmp loop on t(k+1) reduction(max:res)
-  do k = 1, n
+  !$xmp loop on t(k) reduction(max:res)
+  do k = 2, n+1
 
-     kp  =  k + 1
+     ! kp  =  k + 1
+     ! write(*, *) "res: k = ", k, "myrank = ", myrank
 
      do ip = 1, lm
         ix    =  ip + l
-        rtmp  =  b(ip,k) - coef(ip,1,k)*x(ix  , kp-1)   &
-             - coef(ip,2,k)*x(ix-l, kp  )   &
-             - coef(ip,3,k)*x(ix-1, kp  )   &
-             - coef(ip,4,k)*x(ix  , kp  )   &
-             - coef(ip,5,k)*x(ix+1, kp  )   &
-             - coef(ip,6,k)*x(ix+l, kp  )   &
-             - coef(ip,7,k)*x(ix  , kp+1)
+        rtmp  =  b(ip,k-1) - coef(ip,1,k-1)*x(ix  , k-1)   &
+             - coef(ip,2,k-1)*x(ix-l, k  )   &
+             - coef(ip,3,k-1)*x(ix-1, k  )   &
+             - coef(ip,4,k-1)*x(ix  , k  )   &
+             - coef(ip,5,k-1)*x(ix+1, k  )   &
+             - coef(ip,6,k-1)*x(ix+l, k  )   &
+             - coef(ip,7,k-1)*x(ix  , k+1)
         res  =  max( res, abs(rtmp) )
 
      end do
@@ -82,39 +84,39 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
 
   iter  =  iter + 1
 
-  ! write(*, *) "errorcheck1, rank:", myrank
-
   ! data has been received in the previous line of 'res = 0.0d0'
 
-  do k = npstart, npend, 2 ! start is needed to be an odd number.
+  !$xmp loop on t(k)
+  do k = 2, n+1, 2 ! start is needed to be an odd number.
 
-     kp  =  k + 1
+     ! kp  =  k + 1
+     ! write(*, *) "iter: k = ", k, "iter = ", iter, "myrank = ", myrank
 
      do ip = 1, lm, 2
 
         ix      =  ip + l
-        xtmp    = ( b(ip,k) - coef(ip,1,k)*x(ix  , kp-1) &
-             - coef(ip,2,k)*x(ix-l, kp  ) &
-             - coef(ip,3,k)*x(ix-1, kp  ) &
-             - coef(ip,5,k)*x(ix+1, kp  ) &
-             - coef(ip,6,k)*x(ix+l, kp  ) &
-             - coef(ip,7,k)*x(ix  , kp+1) ) &
-             / coef(ip,4,k)
-        x(ix,kp) =  s1omg*x(ix,kp) + omega*xtmp
+        xtmp    = ( b(ip,k-1) - coef(ip,1,k-1)*x(ix  , k-1) &
+             - coef(ip,2,k-1)*x(ix-l, k  ) &
+             - coef(ip,3,k-1)*x(ix-1, k  ) &
+             - coef(ip,5,k-1)*x(ix+1, k  ) &
+             - coef(ip,6,k-1)*x(ix+l, k  ) &
+             - coef(ip,7,k-1)*x(ix  , k+1) ) &
+             / coef(ip,4,k-1)
+        x(ix,k) =  s1omg*x(ix,k) + omega*xtmp
 
      end do
 
      do ip = 2, lm, 2
 
         ix      =  ip + l
-        xtmp    = ( b(ip,k) - coef(ip,1,k)*x(ix  , kp-1) &
-             - coef(ip,2,k)*x(ix-l, kp  ) &
-             - coef(ip,3,k)*x(ix-1, kp  ) &
-             - coef(ip,5,k)*x(ix+1, kp  ) &
-             - coef(ip,6,k)*x(ix+l, kp  ) &
-             - coef(ip,7,k)*x(ix  , kp+1) ) &
-             / coef(ip,4,k)
-        x(ix,kp) =  s1omg*x(ix,kp) + omega*xtmp
+        xtmp    = ( b(ip,k-1) - coef(ip,1,k-1)*x(ix  , k-1) &
+             - coef(ip,2,k-1)*x(ix-l, k  ) &
+             - coef(ip,3,k-1)*x(ix-1, k  ) &
+             - coef(ip,5,k-1)*x(ix+1, k  ) &
+             - coef(ip,6,k-1)*x(ix+l, k  ) &
+             - coef(ip,7,k-1)*x(ix  , k+1) ) &
+             / coef(ip,4,k-1)
+        x(ix,k) =  s1omg*x(ix,k) + omega*xtmp
 
      end do
 
@@ -123,35 +125,37 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
   ! sendrecv for x(*, kp)
   !$xmp reflect(x)
 
-  do k = npstart+1, npend, 2 ! start is needed to be an even number
+  !$xmp loop on t(k)
+  do k = 3, n+1, 2 ! start is needed to be an even number
 
-     kp  =  k + 1
+     ! kp  =  k + 1
+     ! write(*, *) "iter: k = ", k, "iter = ", iter, "myrank = ", myrank
 
      do ip = 2, lm, 2
 
         ix      =  ip + l
-        xtmp    = ( b(ip,k) - coef(ip,1,k)*x(ix  , kp-1) &
-             - coef(ip,2,k)*x(ix-l, kp  ) &
-             - coef(ip,3,k)*x(ix-1, kp  ) &
-             - coef(ip,5,k)*x(ix+1, kp  ) &
-             - coef(ip,6,k)*x(ix+l, kp  ) &
-             - coef(ip,7,k)*x(ix  , kp+1) ) &
-             / coef(ip,4,k)
-        x(ix,kp) =  s1omg*x(ix,kp) + omega*xtmp
+        xtmp    = ( b(ip,k-1) - coef(ip,1,k-1)*x(ix  , k-1) &
+             - coef(ip,2,k-1)*x(ix-l, k  ) &
+             - coef(ip,3,k-1)*x(ix-1, k  ) &
+             - coef(ip,5,k-1)*x(ix+1, k  ) &
+             - coef(ip,6,k-1)*x(ix+l, k  ) &
+             - coef(ip,7,k-1)*x(ix  , k+1) ) &
+             / coef(ip,4,k-1)
+        x(ix,k) =  s1omg*x(ix,k) + omega*xtmp
 
      end do
 
      do ip = 1, lm, 2
 
         ix      =  ip + l
-        xtmp    = ( b(ip,k) - coef(ip,1,k)*x(ix  , kp-1) &
-             - coef(ip,2,k)*x(ix-l, kp  ) &
-             - coef(ip,3,k)*x(ix-1, kp  ) &
-             - coef(ip,5,k)*x(ix+1, kp  ) &
-             - coef(ip,6,k)*x(ix+l, kp  ) &
-             - coef(ip,7,k)*x(ix  , kp+1) ) &
-             / coef(ip,4,k)
-        x(ix,kp) =  s1omg*x(ix,kp) + omega*xtmp
+        xtmp    = ( b(ip,k-1) - coef(ip,1,k-1)*x(ix  , k-1) &
+             - coef(ip,2,k-1)*x(ix-l, k  ) &
+             - coef(ip,3,k-1)*x(ix-1, k  ) &
+             - coef(ip,5,k-1)*x(ix+1, k  ) &
+             - coef(ip,6,k-1)*x(ix+l, k  ) &
+             - coef(ip,7,k-1)*x(ix  , k+1) ) &
+             / coef(ip,4,k-1)
+        x(ix,k) =  s1omg*x(ix,k) + omega*xtmp
 
      end do
 
@@ -162,21 +166,21 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
 
   res  =  0.0d0
 
-  !$xmp loop on t(k+1) reduction(max:res)
-  do k = 1, n
+  !$xmp loop on t(k) reduction(max:res)
+  do k = 2, n+1
 
-     kp  =  k + 1
+     ! kp  =  k + 1
 
      do ip = 1, lm
 
         ix    =  ip + l
-        rtmp  =  b(ip,k) - coef(ip,1,k)*x(ix  , kp-1)   &
-             - coef(ip,2,k)*x(ix-l, kp  )   &
-             - coef(ip,3,k)*x(ix-1, kp  )   &
-             - coef(ip,4,k)*x(ix  , kp  )   &
-             - coef(ip,5,k)*x(ix+1, kp  )   &
-             - coef(ip,6,k)*x(ix+l, kp  )   &
-             - coef(ip,7,k)*x(ix  , kp+1)
+        rtmp  =  b(ip,k-1) - coef(ip,1,k-1)*x(ix  , k-1)   &
+             - coef(ip,2,k-1)*x(ix-l, k  )   &
+             - coef(ip,3,k-1)*x(ix-1, k  )   &
+             - coef(ip,4,k-1)*x(ix  , k  )   &
+             - coef(ip,5,k-1)*x(ix+1, k  )   &
+             - coef(ip,6,k-1)*x(ix+l, k  )   &
+             - coef(ip,7,k-1)*x(ix  , k+1)
         res   =  max( res, abs(rtmp) )
 
      end do
