@@ -1,0 +1,9 @@
+*.o
+*.mod
+*.xmod
+core-F_Front.*
+jobname.o*
+miflow
+__omni_temp_*.F90
+*~
+#*#
