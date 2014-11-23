@@ -4,7 +4,7 @@ subroutine  clearv
   implicit none
 
   integer :: i, j, k
-  integer :: ip ! , kp
+  integer :: ip
 
   !$xmp loop on t(k)
   do k = 1, n2
@@ -12,11 +12,6 @@ subroutine  clearv
         do i = 1, l1
            u (i,j,k)  =  0.0d0
            u1(i,j,k)  =  0.0d0
-
-           ! if(i == 10 .and. j == 3) then
-           !    write(*, *) "u(", i, ",", j, ",", k, ") = ", u(i, j, k), "myrank = ", myrank
-           ! end if
-
         end do
      end do
   end do
@@ -78,9 +73,8 @@ subroutine  clearv
 
   !$xmp loop on t(k)
   do k = 1, n
-     !  do kp = 1, n ! 一応
      do ip = 1, lm2
-        zx(ip,k)       =  0.0d0 ! miss?
+        zx(ip,k)       =  0.0d0
      end do
   end do
 

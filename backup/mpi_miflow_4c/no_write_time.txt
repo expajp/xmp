@@ -1,0 +1,23 @@
+1 process(es):
+
+real	8m18.720s
+user	0m0.030s
+sys	0m0.030s
+
+2 process(es):
+
+real	4m32.437s
+user	0m0.030s
+sys	0m0.030s
+
+4 process(es):
+
+real	2m22.872s
+user	0m0.010s
+sys	0m0.010s
+
+8 process(es):
+
+real	1m18.184s
+user	0m0.020s
+sys	0m0.040s

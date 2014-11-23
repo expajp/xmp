@@ -1,0 +1,19 @@
+      common  /cmcnst/ re,     dt,     dx,     dy,     dz,     ore,
+     &                 odt,    odx,    ody,    odz,    odx2,   ody2,
+     &                 odz2,   omega,  s1omg,  eps,    uinit,  xlen,
+     &                 ylen,   zlen
+      common  /cmcalc/ dtodx,  dtody,  dtodz,  odtodx, odtody, odtodz,
+     &                 cdt4dx, cdt4dy, cdt4dz, dfxore, dfyore, dfzore,
+     &                 cdt2dx, cdt2dy, cdt2dz
+      common  /cmcntl/ lpbgn,  lpend,  linner, maxitr,
+     &                 lmnctr, lmctr,  nctr
+      
+      common  /cmflow/ u (l1,m2,n2),  v (l2,m1,n2),  w (l2,m2,n1),
+     &                 u1(l1,m2,n2),  v1(l2,m1,n2),  w1(l2,m2,n1),
+     &                 p (l2,m2,n2)
+      
+      common  /cmwork/ wk1(l1,m1,n1), wk2(l1,m1,n1), wk3(l1,m1,n1),
+     &                 dfs(l1,m1,n1)
+
+      common  /cmlslz/ zcoef(lm,7,n), zb(lm,n),      zx(lm2,n2)
+

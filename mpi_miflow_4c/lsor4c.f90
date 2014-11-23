@@ -50,7 +50,7 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
   ! "p"
   npstart = (myrank * n / nprocs) + 1
   npend = (myrank+1) * n / nprocs
-  
+
   ! start calculation
 
   bmax  =  0.0d0
@@ -161,10 +161,12 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
 
   end do
 
+
   ! sendrecv for x(*, kp+1) columns
   call mpi_sendrecv(x(1, nstart), lm2, MPI_REAL8, leftnode, 100, &
        x(1, nend+1), lm2, MPI_REAL8, rightnode, 100, &
        MPI_COMM_WORLD, istat, ierr)
+
 
   do k = npstart+1, npend, 2
 
@@ -230,7 +232,6 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
   call mpi_allreduce(res_local, res, 1, MPI_REAL8, MPI_MAX, MPI_COMM_WORLD, ierr);
 
   res = res / bmax
-
 
   ! ===( debug write )======================
   !        if( mod(iter,10) .eq. 0 )  then
