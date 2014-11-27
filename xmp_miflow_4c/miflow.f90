@@ -40,11 +40,11 @@ program  miflow
      nh = n/2 + 2
      pcal =  0.125*re*(p(l,mh,nh)-p(l1,mh,nh))*odx
 
-     if(myrank == int(nprocs/2+1)) then
-        write(6,*) 'Loop = ', loopo
-        write(6,'(a,1p,2e15.5)') &
-             ' Maximum velocity at outlet  : ', pcal, u(l,mh,nh)
-     end if
+!     if(myrank == int(nprocs/2+1)) then
+!        write(6,*) 'Loop = ', loopo
+!        write(6,'(a,1p,2e15.5)') &
+!             ' Maximum velocity at outlet  : ', pcal, u(l,mh,nh)
+!     end if
 
       
 ! Debug

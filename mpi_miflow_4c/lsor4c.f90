@@ -10,6 +10,12 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
   integer :: k, ip, kp, ix, iter
   real(8) :: bmax_local, bmax, res_local, res, rtmp, xtmp
 
+  ! for time split
+  real(8) :: time0, time1, time2, time3, time4
+  real(8) :: time5, time6, time7, time8, time9
+  real(8) :: time10, time11
+  real(8) :: calc, comm
+
   ! Variables for MPI
   integer :: ierr
   integer :: myrank, nprocs
@@ -51,7 +57,23 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
   npstart = (myrank * n / nprocs) + 1
   npend = (myrank+1) * n / nprocs
 
+  ! initialize time
+  time0 = 0.0d0
+  time1 = 0.0d0
+  time2 = 0.0d0
+  time3 = 0.0d0
+  time4 = 0.0d0
+  time5 = 0.0d0
+  time6 = 0.0d0
+  time7 = 0.0d0
+  time8 = 0.0d0
+  time9 = 0.0d0
+  time10 = 0.0d0
+  time11 = 0.0d0
+
   ! start calculation
+  call mpi_barrier(MPI_COMM_WORLD, ierr)
+  time0 = MPI_Wtime()
 
   bmax  =  0.0d0
   bmax_local = 0.0d0
@@ -60,6 +82,9 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
         bmax_local  =  max( bmax_local, abs( b(ip,k) ) )
      end do
   end do
+
+  call mpi_barrier(MPI_COMM_WORLD, ierr)
+  time1 = MPI_Wtime()
 
   ! reduction for bmax
   call mpi_allreduce(bmax_local, bmax, 1, MPI_REAL8, MPI_MAX, MPI_COMM_WORLD, ierr)
@@ -84,6 +109,9 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
        coef(1, 1, nstart-1), lm*7, MPI_REAL8, leftnode, 100, &
        MPI_COMM_WORLD, istat, ierr)
 
+  call mpi_barrier(MPI_COMM_WORLD, ierr)
+  time2 = MPI_Wtime()
+
   res  =  0.0d0
   res_local = 0.0d0
   do k = npstart, npend
@@ -104,9 +132,14 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
      end do
   end do
 
+  !call mpi_barrier(MPI_COMM_WORLD, ierr)
+  !time3 = MPI_Wtime()
+
   ! reduction for res
   call mpi_allreduce(res_local, res, 1, MPI_REAL8, MPI_MAX, MPI_COMM_WORLD, ierr)
 
+  call mpi_barrier(MPI_COMM_WORLD, ierr)
+  time4 = MPI_Wtime()
 
   if( bmax .ne. 0.0 )   res = res / bmax
 
@@ -124,6 +157,9 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
   iter  =  0
 
 10 continue ! label
+
+  call mpi_barrier(MPI_COMM_WORLD, ierr)
+  time5 = time5 + MPI_Wtime()
 
   iter  =  iter + 1
 
@@ -161,12 +197,16 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
 
   end do
 
+  call mpi_barrier(MPI_COMM_WORLD, ierr)
+  time6 = time6 + MPI_Wtime()
 
   ! sendrecv for x(*, kp+1) columns
   call mpi_sendrecv(x(1, nstart), lm2, MPI_REAL8, leftnode, 100, &
        x(1, nend+1), lm2, MPI_REAL8, rightnode, 100, &
        MPI_COMM_WORLD, istat, ierr)
 
+  call mpi_barrier(MPI_COMM_WORLD, ierr)
+  time7 = time7 + MPI_Wtime()
 
   do k = npstart+1, npend, 2
 
@@ -202,10 +242,16 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
 
   end do
 
+  call mpi_barrier(MPI_COMM_WORLD, ierr)
+  time8 = time8 + MPI_Wtime()
+
   ! sendrecv for x(*, kp-1) columns
   call mpi_sendrecv(x(1, nend), lm2, MPI_REAL8, rightnode, 100, &
        x(1, nstart-1), lm2, MPI_REAL8, leftnode, 100, &
        MPI_COMM_WORLD, istat, ierr)
+
+  call mpi_barrier(MPI_COMM_WORLD, ierr)
+  time9 = time9 + MPI_Wtime()
 
   res  =  0.0d0
   res_local = 0.0d0
@@ -228,8 +274,14 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
      end do
   end do
 
+  !call mpi_barrier(MPI_COMM_WORLD, ierr)
+  !time10 = time10 + MPI_Wtime()
+
   ! reduction for res
   call mpi_allreduce(res_local, res, 1, MPI_REAL8, MPI_MAX, MPI_COMM_WORLD, ierr);
+
+  call mpi_barrier(MPI_COMM_WORLD, ierr)
+  time11 = time11 + MPI_Wtime()
 
   res = res / bmax
 
@@ -240,7 +292,18 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg, myrank, npr
 
   if( (res .gt. eps) .and. (iter .le. maxitr) )  go to 10
 
-  if(myrank == 0)  write(6,6000)  iter, res
+!  if(myrank == 0)  write(6,6000)  iter, res
+
+  if(myrank == 0) then
+     calc = (time6-time5)+(time8-time7)+(time11-time9)! xmpと合わせるため、リダクションの通信を含む
+     comm = (time7-time6)+(time9-time8)
+     write(*, *) "init: ", time4-time0
+     write(*, *) "comm: ", comm
+     write(*, *) "comm per 1 iteration: ", comm/iter
+     write(*, *) "calc: ", calc
+     write(*, *) "calc per 1 iteration: ", calc/iter
+     write(*, '(i4,3(f10.6))') nprocs, time4-time0, comm, calc/iter
+  end if
 
 6000 format(8x,'== SOR4C ==  ',i5,5x,e15.6)
 

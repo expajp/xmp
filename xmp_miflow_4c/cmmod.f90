@@ -32,10 +32,10 @@ module cmmod
 
   ! Variables for XMP
   integer :: myrank, nprocs
-  integer :: dist(4) = (/9,8,8,9/)
+  integer :: dist(16) = (/3,2,2,2,2,2,2,2,2,2,2,2,2,2,2,3/)
 
   ! XMP directives
-  !$xmp nodes n(4)
+  !$xmp nodes n(16)
   !$xmp template t(34)
   !$xmp distribute t(gblock(dist)) onto n
   

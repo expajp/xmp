@@ -19,13 +19,13 @@ subroutine  datain
   uinit  =  1.0
 
   lpbgn  =  1
-  lpend  =  20 ! default: 20
-  linner =  50 ! default: 50
+  lpend  =  1 ! default: 20
+  linner =  1 ! default: 50
   maxitr =  299 ! default: 299
 
-  if(myrank == 1) then
-     write(6,6000)  l, m, n, xlen, ylen, zlen, dx, dy, dz, dt, re
-  end if
+!  if(myrank == 1) then
+!     write(6,6000)  l, m, n, xlen, ylen, zlen, dx, dy, dz, dt, re
+!  end if
 
 !  write(6,7000) nprocs, myrank
 
