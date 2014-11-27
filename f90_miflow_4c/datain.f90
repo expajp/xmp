@@ -19,11 +19,11 @@ subroutine  datain
   uinit  =  1.0
 
   lpbgn  =  1
-  lpend  =  20
-  linner =  50
-  maxitr =  299
+  lpend  =  1 ! default:20
+  linner =  1 ! default:50
+  maxitr =  299 ! default:299
       
-  write(6,6000)  l, m, n, xlen, ylen, zlen, dx, dy, dz, dt, re
+!  write(6,6000)  l, m, n, xlen, ylen, zlen, dx, dy, dz, dt, re
 
 6000 format(5x,20('=')/ &
           5x,'  MiFlow (Ver 1.1)'/ &

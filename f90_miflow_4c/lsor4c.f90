@@ -8,6 +8,29 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg )
   integer :: k, ip, kp, ix, iter
   real(8) :: bmax, res, rtmp, xtmp
 
+  ! for time split
+  real(8) :: time0, time1, time2, time3, time4
+  real(8) :: time5, time6, time7, time8, time9
+  real(8) :: time10, time11
+  real(8) :: calc, comm, buffer
+
+  ! initialize time
+  time0 = 0.0d0
+  time1 = 0.0d0
+  time2 = 0.0d0
+  time3 = 0.0d0
+  time4 = 0.0d0
+  time5 = 0.0d0
+  time6 = 0.0d0
+  time7 = 0.0d0
+  time8 = 0.0d0
+  time9 = 0.0d0
+  time10 = 0.0d0
+  time11 = 0.0d0
+  buffer = 0.0d0
+
+  ! start calculation
+  call cpu_time(time0)
 
   bmax  =  0.0d0
 
@@ -37,6 +60,8 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg )
      end do
   end do
 
+  call cpu_time(time4)
+
   if( bmax .ne. 0.0 )   res = res / bmax
 
   if( res .lt. eps )  then
@@ -52,6 +77,9 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg )
   iter  =  0
 
 10 continue ! label
+
+  call cpu_time(buffer)
+  time5 = time5 + buffer
 
   iter  =  iter + 1
 
@@ -144,6 +172,9 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg )
      end do
   end do
 
+  call cpu_time(buffer)
+  time11 = time11 + buffer
+
   res = res / bmax
 
 
@@ -155,7 +186,18 @@ subroutine  lsor4c( l, lm, n, eps, maxitr, coef, b, x, omega, s1omg )
 
   if( (res .gt. eps) .and. (iter .le. maxitr) )  go to 10
 
-  write(6,6000)  iter, res
+  calc = time11-time5
+  write(*, *) "time0: ", time0
+  write(*, *) "time4: ", time4
+  write(*, *) "init: ", time4-time0
+  write(*, *) "comm: ", 0.0d0
+  write(*, *) "comm per 1 iteration: ", 0.0d0
+  write(*, *) "calc: ", calc
+  write(*, *) "calc per 1 iteration: ", calc/iter
+  write(*, '(i4,3(f10.6))') 1, time4-time0, 0.0d0, calc/iter
+
+
+!  write(6,6000)  iter, res
 
 6000 format(8x,'== SOR4C ==  ',i5,5x,e15.6)
 

@@ -37,9 +37,9 @@ program  miflow
      mh = m/2 + 2
      nh = n/2 + 2
      pcal =  0.125*re*(p(l,mh,nh)-p(l1,mh,nh))*odx
-     write(6,*) 'Loop = ', loopo
-     write(6,'(a,1p,2e15.5)') &
-          ' Maximum velocity at outlet  : ', pcal, u(l,mh,nh)
+!     write(6,*) 'Loop = ', loopo
+!     write(6,'(a,1p,2e15.5)') &
+!          ' Maximum velocity at outlet  : ', pcal, u(l,mh,nh)
       
 ! Debug
 !      write(6,'(5e15.5)') (u(l ,mh, k),k=2,n1)
