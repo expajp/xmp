@@ -1,4 +1,5 @@
-program jacobi_1d
+program gs_1d
+  use f95_lapack
   implicit none
 
   integer, parameter :: n = 100
@@ -10,8 +11,9 @@ program jacobi_1d
   real(8) :: h
 
   real(8) :: x(n-1), x_new(n-1), x_diff(n-1) ! object of calc
-  real(8) :: d(n-1, n-1), d_inverse(n-1, n-1), l(n-1, n-1), u(n-1, n-1) ! matrix
+  real(8) :: d(n-1, n-1), lu_inverse(n-1, n-1), l(n-1, n-1), u(n-1, n-1) ! matrix
   real(8) :: b(n-1) ! right_hand side
+  integer :: pivot(n-1) ! for LU decomposition
 
   real(8) :: norm_diff, norm_x ! error check
 
@@ -27,12 +29,11 @@ program jacobi_1d
 
   ! diagonal matrix
   d = 0.0d0
-  d_inverse = 0.0d0
+  lu_inverse = 0.0d0
   do j = 1, n-1
      do i = 1, n-1
         if(i == j) then
            d(i, j) = -2.0d0/(h**2)
-           d_inverse(i, j) = -(h**2)/2.0d0
         end if
      end do
   end do
@@ -53,10 +54,20 @@ program jacobi_1d
      end do
   end do
 
+  ! pivot
+  pivot = 0.0d0
+
   ! right-hand side
   b = 0.0d0
   b(1) = -(border_lower)/(h**2) ! 0
   b(n-1) = -(border_upper)/(h**2) ! -1/h^2
+
+
+  ! calculate (L+U)^(-1)
+  ! code from http://www.rcs.arch.t.u-tokyo.ac.jp/kusuhara/tips/linux/fortran.html
+  lu_inverse = l+u
+  call LA_GETRF(lu_inverse, pivot)
+  call LA_GETRI(lu_inverse, pivot)
 
   ! main loop
   count = 0
@@ -67,7 +78,7 @@ program jacobi_1d
 
   do
      ! calculate new vector 
-     x_new = -matmul(matmul(d_inverse, l+u), x) + matmul(d_inverse, b)
+     x_new = -matmul(matmul(lu_inverse, u), x) + matmul(lu_inverse, b)
 
      ! calculate norm
      x_diff = x_new - x
@@ -111,7 +122,7 @@ program jacobi_1d
 
 100 format("x(", i6, ") = ", f10.8)
 
-end program jacobi_1d
+end program gs_1d
 
 ! 2014/12/25
 ! written by Shu OGAWARA
