@@ -1,4 +1,4 @@
-program gs_1d
+program sor_1d
   use f95_lapack
   implicit none
 
@@ -6,12 +6,14 @@ program gs_1d
   real(8), parameter :: region_lower=0.0d0, region_upper=1.0d0
   real(8), parameter :: border_lower=0.0d0, border_upper=1.0d0
   real(8), parameter :: epsilon = 1.000E-08
+  real(8), parameter :: omega = 1.5 ! it must be from (1, 2)
 
   real(8) :: region_length
   real(8) :: h
 
   real(8) :: x(n-1), x_new(n-1), x_diff(n-1) ! object of calc
-  real(8) :: d(n-1, n-1), ld_inverse(n-1, n-1), l(n-1, n-1), u(n-1, n-1) ! matrix
+  real(8) :: d(n-1, n-1), l(n-1, n-1), u(n-1, n-1) ! matrix
+  real(8) :: d_omega_l_inverse(n-1, n-1), coefficient(n-1, n-1) ! coefficients
   real(8) :: b(n-1) ! right_hand side
   integer :: pivot(n-1) ! for LU decomposition
 
@@ -29,7 +31,6 @@ program gs_1d
 
   ! diagonal matrix
   d = 0.0d0
-  ld_inverse = 0.0d0
   do j = 1, n-1
      do i = 1, n-1
         if(i == j) then
@@ -54,6 +55,10 @@ program gs_1d
      end do
   end do
 
+  ! matrices for calculation
+  d_omega_l_inverse = 0.0d0
+  coefficient = 0.0d0
+
   ! pivot
   pivot = 0.0d0
 
@@ -63,12 +68,15 @@ program gs_1d
   b(n-1) = -(border_upper)/(h**2) ! -1/h^2
 
 
-  ! calculate (L+D)^(-1)
+  ! calculate (D+omega*L)^(-1)
   ! code from http://www.rcs.arch.t.u-tokyo.ac.jp/kusuhara/tips/linux/fortran.html
-  ld_inverse = l+d
+  d_omega_l_inverse = d + omega*l
 
-  call LA_GETRF(ld_inverse, pivot)
-  call LA_GETRI(ld_inverse, pivot)
+  call LA_GETRF(d_omega_l_inverse, pivot)
+  call LA_GETRI(d_omega_l_inverse, pivot)
+
+  ! calculate (1-omega)*D-omega*U
+  coefficient = (1-omega)*d - omega*u
 
   ! main loop
   count = 0
@@ -79,7 +87,7 @@ program gs_1d
 
   do
      ! calculate new vector 
-     x_new = -matmul(matmul(ld_inverse, u), x) + matmul(ld_inverse, b)
+     x_new = matmul(matmul(d_omega_l_inverse, coefficient), x) + omega*matmul(d_omega_l_inverse, b)
 
      ! calculate norm
      x_diff = x_new - x
@@ -123,10 +131,10 @@ program gs_1d
 
 100 format("x(", i6, ") = ", f10.8)
 
-end program gs_1d
+end program sor_1d
 
 ! compile-command:
-! gfortran gs_1d.f90 -I ~/include -L ~/lib -l lapack95 -l lapack -l blas
+! gfortran sor_1d.f90 -I ~/include -L ~/lib -l lapack95 -l lapack -l blas
 
 ! 2015/01/08
 ! written by Shu OGAWARA
