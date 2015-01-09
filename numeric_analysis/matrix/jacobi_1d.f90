@@ -10,7 +10,7 @@ program jacobi_1d
   real(8) :: h
 
   real(8) :: x(n-1), x_new(n-1), x_diff(n-1) ! object of calc
-  real(8) :: a(n-1, n-1) ! left_hand side
+  real(8) :: d(n-1, n-1), d_inverse(n-1, n-1), l(n-1, n-1), u(n-1, n-1) ! matrix
   real(8) :: b(n-1) ! right_hand side
 
   real(8) :: norm_diff, norm_x ! error check
@@ -25,15 +25,32 @@ program jacobi_1d
   x = 0.0d0
   x_new = 0.0d0
 
-  ! matrix
-  a = 0.0d0
-  do i = 1, n-1
-     a(i, i) = -2.0d0/(h**2)
+  ! diagonal matrix
+  d = 0.0d0
+  d_inverse = 0.0d0
+  do j = 1, n-1
+     do i = 1, n-1
+        if(i == j) then
+           d(i, j) = -2.0d0/(h**2)
+           d_inverse(i, j) = -(h**2)/2.0d0
+        end if
+     end do
+  end do
 
-     if(i < n-1) then
-        a(i+1, i) = 1.0d0/(h**2)
-        a(i, i+1) = 1.0d0/(h**2)
-     end if
+  ! lower triangle matrix
+  l = 0.0d0
+  do j = 1, n-1
+     do i = 1, n-1
+        if(i == j+1) l(i, j) = 1.0d0/(h**2)
+     end do
+  end do
+
+  ! upper triangle matrix
+  u = 0.0d0
+  do j = 1, n-1
+     do i = 1, n-1
+        if(i == j-1) u(i, j) = 1.0d0/(h**2)
+     end do
   end do
 
   ! right-hand side
@@ -49,18 +66,8 @@ program jacobi_1d
   write(*,*) "epsilon = ", epsilon
 
   do
-
-     ! calculate new vector
-     x_new = b
-     do j = 1, n-1
-        do i = 1, n-1
-           if(i /= j) x_new(i) = x_new(i) - a(i, j)*x(j)
-        end do
-     end do
-     
-     do i = 1, n-1
-        x_new(i) = x_new(i) / a(i, i)
-     end do
+     ! calculate new vector 
+     x_new = -matmul(matmul(d_inverse, l+u), x) + matmul(d_inverse, b)
 
      ! calculate norm
      x_diff = x_new - x
@@ -106,5 +113,5 @@ program jacobi_1d
 
 end program jacobi_1d
 
-! 2015/01/09
+! 2014/12/25
 ! written by Shu OGAWARA

@@ -1,17 +1,21 @@
-program jacobi_1d
+program sor_1d
+  use f95_lapack
   implicit none
 
   integer, parameter :: n = 100
   real(8), parameter :: region_lower=0.0d0, region_upper=1.0d0
   real(8), parameter :: border_lower=0.0d0, border_upper=1.0d0
   real(8), parameter :: epsilon = 1.000E-08
+  real(8), parameter :: omega = 1.5 ! it must be from (1, 2)
 
   real(8) :: region_length
   real(8) :: h
 
   real(8) :: x(n-1), x_new(n-1), x_diff(n-1) ! object of calc
-  real(8) :: a(n-1, n-1) ! left_hand side
+  real(8) :: d(n-1, n-1), l(n-1, n-1), u(n-1, n-1) ! matrix
+  real(8) :: d_omega_l_inverse(n-1, n-1), coefficient(n-1, n-1) ! coefficients
   real(8) :: b(n-1) ! right_hand side
+  integer :: pivot(n-1) ! for LU decomposition
 
   real(8) :: norm_diff, norm_x ! error check
 
@@ -25,21 +29,54 @@ program jacobi_1d
   x = 0.0d0
   x_new = 0.0d0
 
-  ! matrix
-  a = 0.0d0
-  do i = 1, n-1
-     a(i, i) = -2.0d0/(h**2)
-
-     if(i < n-1) then
-        a(i+1, i) = 1.0d0/(h**2)
-        a(i, i+1) = 1.0d0/(h**2)
-     end if
+  ! diagonal matrix
+  d = 0.0d0
+  do j = 1, n-1
+     do i = 1, n-1
+        if(i == j) then
+           d(i, j) = -2.0d0/(h**2)
+        end if
+     end do
   end do
+
+  ! lower triangle matrix
+  l = 0.0d0
+  do j = 1, n-1
+     do i = 1, n-1
+        if(i == j+1) l(i, j) = 1.0d0/(h**2)
+     end do
+  end do
+
+  ! upper triangle matrix
+  u = 0.0d0
+  do j = 1, n-1
+     do i = 1, n-1
+        if(i == j-1) u(i, j) = 1.0d0/(h**2)
+     end do
+  end do
+
+  ! matrices for calculation
+  d_omega_l_inverse = 0.0d0
+  coefficient = 0.0d0
+
+  ! pivot
+  pivot = 0.0d0
 
   ! right-hand side
   b = 0.0d0
   b(1) = -(border_lower)/(h**2) ! 0
   b(n-1) = -(border_upper)/(h**2) ! -1/h^2
+
+
+  ! calculate (D+omega*L)^(-1)
+  ! code from http://www.rcs.arch.t.u-tokyo.ac.jp/kusuhara/tips/linux/fortran.html
+  d_omega_l_inverse = d + omega*l
+
+  call LA_GETRF(d_omega_l_inverse, pivot)
+  call LA_GETRI(d_omega_l_inverse, pivot)
+
+  ! calculate (1-omega)*D-omega*U
+  coefficient = (1-omega)*d - omega*u
 
   ! main loop
   count = 0
@@ -49,18 +86,8 @@ program jacobi_1d
   write(*,*) "epsilon = ", epsilon
 
   do
-
-     ! calculate new vector
-     x_new = b
-     do j = 1, n-1
-        do i = 1, n-1
-           if(i /= j) x_new(i) = x_new(i) - a(i, j)*x(j)
-        end do
-     end do
-     
-     do i = 1, n-1
-        x_new(i) = x_new(i) / a(i, i)
-     end do
+     ! calculate new vector 
+     x_new = matmul(matmul(d_omega_l_inverse, coefficient), x) + omega*matmul(d_omega_l_inverse, b)
 
      ! calculate norm
      x_diff = x_new - x
@@ -104,7 +131,10 @@ program jacobi_1d
 
 100 format("x(", i6, ") = ", f10.8)
 
-end program jacobi_1d
+end program sor_1d
 
-! 2015/01/09
+! compile-command:
+! gfortran sor_1d.f90 -I ~/include -L ~/lib -l lapack95 -l lapack -l blas
+
+! 2015/01/08
 ! written by Shu OGAWARA

@@ -4,6 +4,7 @@
 core-F_Front.*
 jobname.o*
 miflow
+a.out
 __omni_temp_*.F90
 *~
 #*#
