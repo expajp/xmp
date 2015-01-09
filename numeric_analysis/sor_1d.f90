@@ -1,5 +1,4 @@
 program sor_1d
-  use f95_lapack
   implicit none
 
   integer, parameter :: n = 100
@@ -12,10 +11,8 @@ program sor_1d
   real(8) :: h
 
   real(8) :: x(n-1), x_new(n-1), x_diff(n-1) ! object of calc
-  real(8) :: d(n-1, n-1), l(n-1, n-1), u(n-1, n-1) ! matrix
-  real(8) :: d_omega_l_inverse(n-1, n-1), coefficient(n-1, n-1) ! coefficients
+  real(8) :: a(n-1, n-1) ! left_hand side
   real(8) :: b(n-1) ! right_hand side
-  integer :: pivot(n-1) ! for LU decomposition
 
   real(8) :: norm_diff, norm_x ! error check
 
@@ -29,54 +26,21 @@ program sor_1d
   x = 0.0d0
   x_new = 0.0d0
 
-  ! diagonal matrix
-  d = 0.0d0
-  do j = 1, n-1
-     do i = 1, n-1
-        if(i == j) then
-           d(i, j) = -2.0d0/(h**2)
-        end if
-     end do
+  ! matrix
+  a = 0.0d0
+  do i = 1, n-1
+     a(i, i) = -2.0d0/(h**2)
+
+     if(i < n-1) then
+        a(i+1, i) = 1.0d0/(h**2)
+        a(i, i+1) = 1.0d0/(h**2)
+     end if
   end do
-
-  ! lower triangle matrix
-  l = 0.0d0
-  do j = 1, n-1
-     do i = 1, n-1
-        if(i == j+1) l(i, j) = 1.0d0/(h**2)
-     end do
-  end do
-
-  ! upper triangle matrix
-  u = 0.0d0
-  do j = 1, n-1
-     do i = 1, n-1
-        if(i == j-1) u(i, j) = 1.0d0/(h**2)
-     end do
-  end do
-
-  ! matrices for calculation
-  d_omega_l_inverse = 0.0d0
-  coefficient = 0.0d0
-
-  ! pivot
-  pivot = 0.0d0
 
   ! right-hand side
   b = 0.0d0
   b(1) = -(border_lower)/(h**2) ! 0
   b(n-1) = -(border_upper)/(h**2) ! -1/h^2
-
-
-  ! calculate (D+omega*L)^(-1)
-  ! code from http://www.rcs.arch.t.u-tokyo.ac.jp/kusuhara/tips/linux/fortran.html
-  d_omega_l_inverse = d + omega*l
-
-  call LA_GETRF(d_omega_l_inverse, pivot)
-  call LA_GETRI(d_omega_l_inverse, pivot)
-
-  ! calculate (1-omega)*D-omega*U
-  coefficient = (1-omega)*d - omega*u
 
   ! main loop
   count = 0
@@ -86,9 +50,18 @@ program sor_1d
   write(*,*) "epsilon = ", epsilon
 
   do
-     ! calculate new vector 
-     x_new = matmul(matmul(d_omega_l_inverse, coefficient), x) + omega*matmul(d_omega_l_inverse, b)
 
+     ! calculate new vector
+     x_new = b
+
+     do i = 1, n-1
+        do j = 1, n-1
+           if(i < j) x_new(i) = x_new(i) - a(i, j)*x(j)
+           if(i > j) x_new(i) = x_new(i) - a(i, j)*x_new(j)
+        end do
+        x_new(i) = (omega/a(i, i))*x_new(i) + (1-omega)*x(i)
+     end do
+     
      ! calculate norm
      x_diff = x_new - x
      do i = 1, n-1
@@ -133,8 +106,5 @@ program sor_1d
 
 end program sor_1d
 
-! compile-command:
-! gfortran sor_1d.f90 -I ~/include -L ~/lib -l lapack95 -l lapack -l blas
-
-! 2015/01/08
+! 2015/01/09
 ! written by Shu OGAWARA
