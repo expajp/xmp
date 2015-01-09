@@ -1,5 +1,4 @@
 program gs_1d
-  use f95_lapack
   implicit none
 
   integer, parameter :: n = 100
@@ -11,9 +10,8 @@ program gs_1d
   real(8) :: h
 
   real(8) :: x(n-1), x_new(n-1), x_diff(n-1) ! object of calc
-  real(8) :: d(n-1, n-1), ld_inverse(n-1, n-1), l(n-1, n-1), u(n-1, n-1) ! matrix
+  real(8) :: a(n-1, n-1) ! left_hand side
   real(8) :: b(n-1) ! right_hand side
-  integer :: pivot(n-1) ! for LU decomposition
 
   real(8) :: norm_diff, norm_x ! error check
 
@@ -27,48 +25,21 @@ program gs_1d
   x = 0.0d0
   x_new = 0.0d0
 
-  ! diagonal matrix
-  d = 0.0d0
-  ld_inverse = 0.0d0
-  do j = 1, n-1
-     do i = 1, n-1
-        if(i == j) then
-           d(i, j) = -2.0d0/(h**2)
-        end if
-     end do
-  end do
+  ! matrix
+  a = 0.0d0
+  do i = 1, n-1
+     a(i, i) = -2.0d0/(h**2)
 
-  ! lower triangle matrix
-  l = 0.0d0
-  do j = 1, n-1
-     do i = 1, n-1
-        if(i == j+1) l(i, j) = 1.0d0/(h**2)
-     end do
+     if(i < n-1) then
+        a(i+1, i) = 1.0d0/(h**2)
+        a(i, i+1) = 1.0d0/(h**2)
+     end if
   end do
-
-  ! upper triangle matrix
-  u = 0.0d0
-  do j = 1, n-1
-     do i = 1, n-1
-        if(i == j-1) u(i, j) = 1.0d0/(h**2)
-     end do
-  end do
-
-  ! pivot
-  pivot = 0.0d0
 
   ! right-hand side
   b = 0.0d0
   b(1) = -(border_lower)/(h**2) ! 0
   b(n-1) = -(border_upper)/(h**2) ! -1/h^2
-
-
-  ! calculate (L+D)^(-1)
-  ! code from http://www.rcs.arch.t.u-tokyo.ac.jp/kusuhara/tips/linux/fortran.html
-  ld_inverse = l+d
-
-  call LA_GETRF(ld_inverse, pivot)
-  call LA_GETRI(ld_inverse, pivot)
 
   ! main loop
   count = 0
@@ -78,9 +49,18 @@ program gs_1d
   write(*,*) "epsilon = ", epsilon
 
   do
-     ! calculate new vector 
-     x_new = -matmul(matmul(ld_inverse, u), x) + matmul(ld_inverse, b)
 
+     ! calculate new vector
+     x_new = b
+
+     do i = 1, n-1
+        do j = 1, n-1
+           if(i < j) x_new(i) = x_new(i) - a(i, j)*x(j)
+           if(i > j) x_new(i) = x_new(i) - a(i, j)*x_new(j)
+        end do
+        x_new(i) = x_new(i) / a(i, i)
+     end do
+     
      ! calculate norm
      x_diff = x_new - x
      do i = 1, n-1
@@ -125,8 +105,5 @@ program gs_1d
 
 end program gs_1d
 
-! compile-command:
-! gfortran gs_1d.f90 -I ~/include -L ~/lib -l lapack95 -l lapack -l blas
-
-! 2015/01/08
+! 2015/01/09
 ! written by Shu OGAWARA
