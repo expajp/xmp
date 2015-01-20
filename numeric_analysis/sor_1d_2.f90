@@ -1,6 +1,9 @@
 program sor_1d
   implicit none
 
+  ! ver 2.0
+  ! convert a to 1d array
+
   integer, parameter :: n = 1000
   real(8), parameter :: region_lower=0.0d0, region_upper=1.0d0
   real(8), parameter :: border_lower=0.0d0, border_upper=1.0d0
@@ -10,8 +13,8 @@ program sor_1d
   real(8) :: region_length
   real(8) :: h
 
-  real(8) :: x(n-1), x_new(n-1), x_diff(n-1) ! object of calc
-  real(8) :: a(n-1, n-1) ! left_hand side
+  real(8) :: x(n-1), x_old(n-1), x_diff(n-1) ! object of calc
+  real(8) :: a_upper(1:n-2), a_diag(1:n-1), a_lower(2:n-1) ! left_hand side, a_*(i) means ith row's number
   real(8) :: b(n-1) ! right_hand side
 
   real(8) :: norm_diff, norm_x ! error check
@@ -24,23 +27,26 @@ program sor_1d
   h = (region_length)/n ! 1/n
   
   x = 0.0d0
-  x_new = 0.0d0
+  x_old = 0.0d0
 
   ! matrix
-  a = 0.0d0
-  do i = 1, n-1
-     a(i, i) = -2.0d0/(h**2)
+  a_upper = 0.0d0
+  a_diag = 0.0d0
+  a_lower = 0.0d0
 
-     if(i < n-1) then
-        a(i+1, i) = 1.0d0/(h**2)
-        a(i, i+1) = 1.0d0/(h**2)
-     end if
+  do i = 1, n-2
+     a_upper(i) = 1.0d0/h**2
+     a_diag(i) = -2.0d0/h**2
+     a_lower(i+1) = 1.0d0/h**2
   end do
+
+  a_diag(n-1) = -2.0d0/h**2
+  
 
   ! right-hand side
   b = 0.0d0
-  b(1) = -(border_lower)/(h**2) ! 0
-  b(n-1) = -(border_upper)/(h**2) ! -1/h^2
+  b(1) = -(border_lower)/h**2 ! 0
+  b(n-1) = -(border_upper)/h**2 ! -1/h^2
 
   ! main loop
   count = 0
@@ -52,21 +58,24 @@ program sor_1d
   do
 
      ! calculate new vector
-     x_new = b
+     x_old = x ! preserve for checking difference
 
-     do i = 1, n-1
-        do j = 1, n-1
-           if(i < j) x_new(i) = x_new(i) - a(i, j)*x(j)
-           if(i > j) x_new(i) = x_new(i) - a(i, j)*x_new(j)
-        end do
-        x_new(i) = (omega/a(i, i))*x_new(i) + (1-omega)*x(i)
+     ! i = 1
+     x(1) = (omega/a_diag(1)) * (b(1)-a_upper(1)*x(2)) + (1-omega)*x(1)
+
+     do i = 2, n-2
+        x(i) = (omega/a_diag(i)) * (b(i)-a_upper(i)*x(i+1)-a_lower(i)*x(i-1)) + (1-omega)*x(i)
      end do
      
+     ! i = n-1
+     x(n-1) = (omega/a_diag(n-1))*((b(n-1)-a_lower(n-1)*x(n-2))) + (1-omega)*x(n-1)
+     
+
      ! calculate norm
-     x_diff = x_new - x
+     x_diff = x - x_old
      do i = 1, n-1
         norm_diff = norm_diff + x_diff(i)**2
-        norm_x = norm_x + x(i)**2
+        norm_x = norm_x + x_old(i)**2
      end do
 
      norm_diff = sqrt(norm_diff)
@@ -85,7 +94,6 @@ program sor_1d
      end if
 
      ! preparation of next iteration
-     x = x_new
      norm_diff = 0.0d0
      norm_x = 0.0d0
      
@@ -106,5 +114,6 @@ program sor_1d
 
 end program sor_1d
 
-! 2015/01/09
+! 2015/01/09 ver.1.0
+! 2015/01/20 ver.2.0
 ! written by Shu OGAWARA
