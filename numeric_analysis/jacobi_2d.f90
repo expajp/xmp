@@ -2,7 +2,7 @@ program jacobi_2d
   implicit none
 
   ! mesh
-  integer, parameter :: l = 30, m = 30
+  integer, parameter :: l = 50, m = 50
   integer, parameter :: mesh = (l-1)*(m-1)
 
   ! region
@@ -17,7 +17,10 @@ program jacobi_2d
   real(8), parameter :: epsilon = 1.000E-08
 
   ! pi
-  real(8), parameter :: pi = 3.141592653589793
+  real(8), parameter :: pi = acos(-1.0d0)
+
+  ! denominator
+  real(8), parameter :: denomi = 1.0d0/(exp(pi)-exp(-pi))
 
   real(8) :: region_x_length, region_y_length
   real(8) :: h, k
@@ -27,6 +30,11 @@ program jacobi_2d
   real(8) :: b(mesh) ! right_hand side
 
   real(8) :: norm_diff, norm_x ! error check
+
+  ! compare with analysis
+  real(8) :: diff
+  integer :: row, column
+  real(8) :: row_d, column_d
 
   integer :: i, j ! iteration
   integer :: count
@@ -45,8 +53,8 @@ program jacobi_2d
   do i = 1, mesh
      a(i, i) = -2.0d0*((1/h**2)+(1/k**2))
 
-     if(i /= mesh) a(i, i+1) = 1.0d0/h**2
-     if(i /= 1)  a(i, i-1) = 1.0d0/h**2
+     if(i /= mesh .and. mod(i,m-1) /= 0) a(i, i+1) = 1.0d0/h**2
+     if(i /= 1 .and. mod(i,m-1) /= 1)  a(i, i-1) = 1.0d0/h**2
 
      if(i+(l-1) <= mesh) a(i, i+l-1) = 1.0d0/k**2
      if(i-(l-1) >= 1)    a(i, i-l+1) = 1.0d0/k**2
@@ -82,6 +90,8 @@ program jacobi_2d
   norm_x = 0.0d0
 
   write(*,*) "epsilon = ", epsilon
+  !write(*,*) "pi = ", pi
+  !write(*,*) "denomi = ", denomi
 
   do
 
@@ -130,8 +140,24 @@ program jacobi_2d
   write(*, *) "iteration: ", count
 
   ! compare with analysed answer here
+  diff = 0.0d0
 
-100 format("x(", i6, ") = ", f10.8)
+  do i = 1, mesh
+     row = mod(i,m-1)
+     if(row == 0) row = l-1
+     column = 1 + (i-1)/(l-1)
+
+     row_d = dble(row)
+     column_d = dble(column)
+
+     diff = diff + abs(x(i) - (sin(pi*h*row_d)*(exp(pi*k*column_d)-exp(-pi*k*column_d))*denomi))
+
+     write(*, 100) row, column, x(i)
+  end do
+
+  write(*, *) "difference from analysis solution: ", diff
+
+100 format(2i4, X, f10.8)
 
 end program jacobi_2d
 
