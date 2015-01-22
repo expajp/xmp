@@ -1,7 +1,7 @@
 program sor_1d
   implicit none
 
-  integer, parameter :: n = 1000
+  integer, parameter :: n = 300
   real(8), parameter :: region_lower=0.0d0, region_upper=1.0d0
   real(8), parameter :: border_lower=0.0d0, border_upper=1.0d0
   real(8), parameter :: epsilon = 1.000E-08

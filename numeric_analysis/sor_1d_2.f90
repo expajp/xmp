@@ -1,10 +1,9 @@
 program sor_1d
   implicit none
 
-  ! ver 2.0
   ! convert a to 1d array
 
-  integer, parameter :: n = 1000
+  integer, parameter :: n = 400
   real(8), parameter :: region_lower=0.0d0, region_upper=1.0d0
   real(8), parameter :: border_lower=0.0d0, border_upper=1.0d0
   real(8), parameter :: epsilon = 1.000E-08
@@ -63,7 +62,12 @@ program sor_1d
      ! i = 1
      x(1) = (omega/a_diag(1)) * (b(1)-a_upper(1)*x(2)) + (1-omega)*x(1)
 
-     do i = 2, n-2
+     ! ordered
+     do i = 2, n-2, 2
+        x(i) = (omega/a_diag(i)) * (b(i)-a_upper(i)*x(i+1)-a_lower(i)*x(i-1)) + (1-omega)*x(i)
+     end do
+
+     do i = 3, n-2, 2
         x(i) = (omega/a_diag(i)) * (b(i)-a_upper(i)*x(i+1)-a_lower(i)*x(i-1)) + (1-omega)*x(i)
      end do
      
@@ -88,7 +92,7 @@ program sor_1d
      count = count+1
 
      ! shinchoku dou desuka?
-     if(mod(count,1000) == 0) then
+     if(mod(count,5000) == 0) then
         write(*, *) "iteration: ", count
         write(*, *) "relative error = ", norm_diff/norm_x
      end if
@@ -104,7 +108,7 @@ program sor_1d
 
   write(*, 100) 0, border_lower
 
-  do i = 10, n-1, 10
+  do i = n/10, n-1, n/10
      write(*, 100) i, x(i)
   end do
 
