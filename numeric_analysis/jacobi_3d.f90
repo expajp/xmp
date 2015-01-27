@@ -28,7 +28,7 @@ program jacobi_3d
   real(8) :: h_x, h_y, h_z
 
   real(8) :: x(mesh), x_new(mesh), x_diff(mesh) ! object of calc
-  real(8) :: a_h_x(mesh-1), a_h_y(mesh-l+1), a_h_z(mesh-(l-1)(m-1)), a_diag(mesh) ! left-hand side
+  real(8) :: a_h_x(mesh-1), a_h_y(mesh-l+1), a_h_z(mesh-(l-1)*(m-1)), a_diag(mesh) ! left-hand side
   real(8) :: b(mesh) ! right_hand side
   integer :: b_border_region ! the upper of region of b inserted border's value
   integer :: coef_h_x, coef_h_y
@@ -61,14 +61,15 @@ program jacobi_3d
      a_diag(i) = -2.0d0*((1.0d0/h_x**2)+(1.0d0/h_y**2)+(1.0d0/h_z**2))
      if(i <= mesh-(l-1)*(m-1)) a_h_z(i) = 1.0d0/h_z**2
      if(i <= mesh-l+1 .and. mod(i,(l-1)*(m-1)) /= 0) a_h_y(i) = 1.0d0/h_y**2
-     if(mod(i,m-1) /= 0) a_h_x(i) = 1.0d0/h_x**2
+     if(mod(i,l-1) /= 0) a_h_x(i) = 1.0d0/h_x**2
   end do
   a_diag(mesh) = -2.0d0*((1.0d0/h_x**2)+(1.0d0/h_y**2)+(1.0d0/h_z**2))
 
   ! right-hand side
   b = 0.0d0
   b_border_region = mesh-(l-1)*(m-1)
-  coef_h_x = 0, coef_h_y = 0
+  coef_h_x = 0
+  coef_h_y = 0
   do i = b_border_region+1, mesh
      coef_h_x = mod(i-b_border_region-1,l-1) + 1
      coef_h_y = (i-b_border_region-1)/(l-1) + 1
@@ -91,13 +92,15 @@ program jacobi_3d
 
      do i = 2, mesh-1
            x_new(i) = b(i)-a_h_x(i)*x(i+1)-a_h_x(i-1)*x(i-1)
-           if(i-l+1 >= 0) x_new(i) = x_new(i)-a_h_y(i-l+1)*x(i-l+1) ! 今回はここまで
-           if(i-(l-1)(m-1) >= 0) x_new(i) = x_new(i)-a_h_y(i-l+1)*x(i-l+1)
-           if(i+l-1 <= mesh) x_new(i) = x_new(i)-a_h_y(i)*x(i+l-1)
+           if(i-l+1 > 0) x_new(i) = x_new(i)-a_h_y(i-l+1)*x(i-l+1) ! lower-triangle y
+           if(i-(l-1)*(m-1) > 0) x_new(i) = x_new(i)-a_h_z(i-(l-1)*(m-1))*x(i-(l-1)*(m-1)) ! lower-triangle z
+           if(i+l-1 <= mesh) x_new(i) = x_new(i)-a_h_y(i)*x(i+l-1) ! upper-triangle y
+           if(i+(l-1)*(m-1) <= mesh) x_new(i) = x_new(i)-a_h_z(i)*x(i+(l-1)*(m-1)) ! upper-triangle z
            x_new(i) = x_new(i)/a_diag(i)
      end do
 
-     x_new(mesh) = (b(mesh)-a_h(mesh-1)*x(mesh-1)-a_h_y(mesh-l+1)*x(mesh-l+1))/a_diag(mesh)
+     x_new(mesh) = (b(mesh)-a_h_x(mesh-1)*x(mesh-1)-a_h_y(mesh-l+1)*x(mesh-l+1) &
+                    -a_h_z(mesh-(l-1)*(m-1))*x(mesh-(l-1)*(m-1)))/a_diag(mesh)
 
      
      ! calculate norm
@@ -143,12 +146,18 @@ program jacobi_3d
      row_d = dble(row)
      column_d = dble(column)
 
-     diff = diff + abs(x(i) - (sin(pi*h_x*row_d)*(exp(pi*h_y*column_d)-exp(-pi*h_y*column_d))*denomi))
+     !diff = diff + abs(x(i) - (sin(pi*h_x*row_d)*(exp(pi*h_y*column_d)-exp(-pi*h_y*column_d))*denomi))
 
      !write(*, 100) row, column, x(i)
   end do
 
-  write(*, *) "difference from analysis solution: ", diff
+  ! write(*, *) "difference from analysis solution: ", diff
+
+  ! output
+  do i = 1, n-1
+     write(*, '(i3, e15.5)') i, x((l-1)*((m-1)/2+1)+i)
+  end do
+
 
 100 format(2i4, X, f10.8)
 
