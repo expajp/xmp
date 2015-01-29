@@ -87,12 +87,20 @@ program sor_3d
      x_old = x
 
      ! calculate new vector
-     do i = 1, mesh
+     do i = 1, mesh, 2
         x(i) = (b(i) - a_h_x(i-1)*x(i-1) - a_h_x(i)*x(i+1) &
                      - a_h_y(i-l+1)*x(i-l+1) - a_h_y(i)*x(i+l-1) &
                      - a_h_z(i-(l-1)*(m-1))*x(i-(l-1)*(m-1)) - a_h_z(i)*x(i+(l-1)*(m-1))) &
                 * (omega/a_diag(i)) + (1-omega)*x(i)
      end do
+
+     do i = 2, mesh, 2
+        x(i) = (b(i) - a_h_x(i-1)*x(i-1) - a_h_x(i)*x(i+1) &
+                     - a_h_y(i-l+1)*x(i-l+1) - a_h_y(i)*x(i+l-1) &
+                     - a_h_z(i-(l-1)*(m-1))*x(i-(l-1)*(m-1)) - a_h_z(i)*x(i+(l-1)*(m-1))) &
+                * (omega/a_diag(i)) + (1-omega)*x(i)
+     end do
+
      
      ! calculate norm
      x_diff = x - x_old
