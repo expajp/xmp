@@ -29,18 +29,18 @@ program mpi_red_black_sor_3d
   integer :: coef_h_x, coef_h_y
 
   ! error check
+  real(8) :: norm_diff_local, norm_x_local
   real(8) :: norm_diff, norm_x
 
   ! iteration
-  integer :: i, j
-  integer :: count
+  integer :: i, count
 
   ! variables for MPI
   integer :: myrank, nprocs, ierr
-  integer :: start, end
+  integer, dimension(MPI_STATUS_SIZE) :: istat
+  integer :: start, goal
+  integer :: nstart, ngoal
   integer :: leftnode, rightnode
-  ! real(8) :: cpu0, cpu1, cpu2, cpu3
-
 
   ! initialization
 
@@ -49,8 +49,14 @@ program mpi_red_black_sor_3d
   call mpi_comm_size(MPI_COMM_WORLD, nprocs, ierr)
   call mpi_comm_rank(MPI_COMM_WORLD, myrank, ierr)
 
-  start = ((n-1)*myrank/nprocs+1)*sf
-  end = ((n-1)*(myrank+1)/nprocs)*sf
+  nstart = (n-1)*myrank/nprocs+1
+  ngoal = (n-1)*(myrank+1)/nprocs
+
+  start = nstart*sf
+  goal = ngoal*sf
+
+  write(*, '(2(A,i4))') "nstart = ", nstart, "ngoal = ", ngoal
+  write(*, '(2(A,i6))') "start = ", start, "goal = ", goal
 
   if(myrank == 0) then
      leftnode = MPI_PROC_NULL
@@ -77,7 +83,7 @@ program mpi_red_black_sor_3d
   a_h_y = 0.0d0
   a_h_z = 0.0d0
 
-  do i = start, end
+  do i = start, goal
      a_diag(i) = -2.0d0*((1.0d0/h_x**2)+(1.0d0/h_y**2)+(1.0d0/h_z**2))
      if(i <= mesh-(l-1)*(m-1)) a_h_z(i) = 1.0d0/h_z**2
      if(i <= mesh-l+1 .and. mod(i,(l-1)*(m-1)) /= 0) a_h_y(i) = 1.0d0/h_y**2
@@ -102,24 +108,49 @@ program mpi_red_black_sor_3d
   count = 0
   norm_diff = 0.0d0
   norm_x = 0.0d0
+  norm_diff_local = 0.0d0
+  norm_x_local = 0.0d0
 
   x = 0.0d0
   x_old = 0.0d0
 
-  write(*,*) "epsilon = ", epsilon
+  if(myrank == 0) write(*,*) "epsilon = ", epsilon
+
+  call mpi_sendrecv(x(start), sf, MPI_REAL8, leftnode, 100, &
+       x(goal+1), sf, MPI_REAL8, rightnode, 100, &
+       MPI_COMM_WORLD, istat, ierr)
+
+  call mpi_sendrecv(x(goal-sf), sf, MPI_REAL8, rightnode, 100, &
+       x(start-sf), sf, MPI_REAL8, leftnode, 100, &
+       MPI_COMM_WORLD, istat, ierr)
+
+  call mpi_sendrecv(a_h_x(goal-1), 1, MPI_REAL8, leftnode, 100, &
+       x(start-1), 1, MPI_REAL8, rightnode, 100, &
+       MPI_COMM_WORLD, istat, ierr)
+
+  call mpi_sendrecv(a_h_y(goal-l+1), l-1, MPI_REAL8, leftnode, 100, &
+       x(start-l+1), l-1, MPI_REAL8, rightnode, 100, &
+       MPI_COMM_WORLD, istat, ierr)
+
+  call mpi_sendrecv(a_h_z(goal-sf), sf, MPI_REAL8, leftnode, 100, &
+       x(start-sf), sf, MPI_REAL8, rightnode, 100, &
+       MPI_COMM_WORLD, istat, ierr)
 
   do
-     x_old = x
+
+     do i = start, goal
+        x_old(i) = x(i)
+     end do
 
      ! calculate new vector
-     do i = start, end, 2
+     do i = start, goal, 2
         x(i) = (b(i) - a_h_x(i-1)*x(i-1) - a_h_x(i)*x(i+1) &
                      - a_h_y(i-l+1)*x(i-l+1) - a_h_y(i)*x(i+l-1) &
                      - a_h_z(i-(l-1)*(m-1))*x(i-(l-1)*(m-1)) - a_h_z(i)*x(i+(l-1)*(m-1))) &
                 * (omega/a_diag(i)) + (1-omega)*x(i)
      end do
 
-     do i = start+1, end, 2
+     do i = start+1, goal, 2
         x(i) = (b(i) - a_h_x(i-1)*x(i-1) - a_h_x(i)*x(i+1) &
                      - a_h_y(i-l+1)*x(i-l+1) - a_h_y(i)*x(i+l-1) &
                      - a_h_z(i-(l-1)*(m-1))*x(i-(l-1)*(m-1)) - a_h_z(i)*x(i+(l-1)*(m-1))) &
@@ -128,25 +159,27 @@ program mpi_red_black_sor_3d
 
      ! message transfer
      call mpi_sendrecv(x(start), sf, MPI_REAL8, leftnode, 100, &
-          x(end+1), sf, MPI_REAL8, rightnode, 100, &
+          x(goal+1), sf, MPI_REAL8, rightnode, 100, &
           MPI_COMM_WORLD, istat, ierr)
 
-     call mpi_sendrecv(x(end-sf), sf, MPI_REAL8, rightnode, 100, &
+     call mpi_sendrecv(x(goal-sf), sf, MPI_REAL8, rightnode, 100, &
           x(start-sf), sf, MPI_REAL8, leftnode, 100, &
           MPI_COMM_WORLD, istat, ierr)
 
-     call mpi_sendrecv(a_h_z(end-sf), sf, MPI_REAL8, leftnode, 100, &
-          x(start-sf), sf, MPI_REAL8, rightnode, 100, &
-          MPI_COMM_WORLD, istat, ierr)
-
-     ! 今日はここまで
 
      ! calculate norm
-     x_diff = x - x_old
-     do i = 1, mesh
-        norm_diff = norm_diff + x_diff(i)**2
-        norm_x = norm_x + x(i)**2
+
+     do i = start, goal
+        x_diff(i) = x(i) - x_old(i)
      end do
+
+     do i = start, goal
+        norm_diff_local = norm_diff_local + x_diff(i)**2
+        norm_x_local = norm_x_local + x(i)**2
+     end do
+
+     call MPI_Allreduce(norm_diff_local, norm_diff, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
+     call MPI_Allreduce(norm_x_local, norm_x, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
 
      norm_diff = sqrt(norm_diff)
      norm_x = sqrt(norm_x)
@@ -158,7 +191,7 @@ program mpi_red_black_sor_3d
      count = count+1
 
      ! shinchoku dou desuka?
-     if(mod(count,500) == 0) then
+     if(mod(count,500) == 0 .and. myrank == 0) then
         write(*, *) "iteration: ", count
         write(*, *) "relative error = ", norm_diff/norm_x
      end if
@@ -166,19 +199,25 @@ program mpi_red_black_sor_3d
      ! preparation of next iteration
      norm_diff = 0.0d0
      norm_x = 0.0d0
+     norm_diff_local = 0.0d0
+     norm_x_local = 0.0d0
+
+     call mpi_barrier(MPI_COMM_WORLD, ierr)
      
   end do
 
   ! output
-  write(*, *) "iteration: ", count
+  if(myrank == 0) write(*, *) "iteration: ", count
 
   ! compare with analysed answer here
   ! write(*, *) "difference from analysis solution: ", diff
 
   ! output
-  do i = 1, n-1
+  do i = nstart, ngoal
      write(*, '(i3, e15.5)') i, x((l-1)*((m-1)/2+1)+i)
   end do
+
+  call mpi_finalize(ierr)
 
 
 100 format(2i4, X, f10.8)
