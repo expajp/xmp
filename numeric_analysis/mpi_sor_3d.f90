@@ -1,4 +1,4 @@
-program mpi_sor_3d
+program mpi_rbsor_3d
   use mpi
   implicit none
 
@@ -205,7 +205,7 @@ program mpi_sor_3d
 
 100 format(2i4, X, f10.8)
 
-end program mpi_sor_3d
+end program mpi_rbsor_3d
 
 ! 2015/02/06 first version
 ! written by Shu OGAWARA
