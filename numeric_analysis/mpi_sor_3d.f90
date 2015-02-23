@@ -25,9 +25,9 @@ program mpi_rbsor_3d
   real(8) :: region_x_length, region_y_length, region_z_length
   real(8) :: h_x, h_y, h_z
 
-  real(8) :: x(-sf:mesh+1), x_old(-sf:mesh+1), x_diff(-sf:mesh+1) ! object of calc
-  real(8) :: a_h_x(-sf:mesh+1), a_h_y(-sf:mesh+1), a_h_z(-sf:mesh+1), a_diag(-sf:mesh+1) ! left-hand side
-  real(8) :: b(-sf:mesh+1) ! right_hand side
+  real(8), dimension(:), allocatable :: x, x_old, x_diff ! object of calc
+  real(8), dimension(:), allocatable :: a_h_x, a_h_y, a_h_z, a_diag ! left-hand side
+  real(8), dimension(:), allocatable :: b ! right_hand side
   integer :: b_border_region ! the upper of region of b inserted border's value
   integer :: coef_h_x, coef_h_y
 
@@ -84,29 +84,46 @@ program mpi_rbsor_3d
   h_z = (region_z_length)/n ! 1/n
   
   ! matrix
+  allocate(x(start-sf:goal+sf))
+  allocate(x_old(start:goal))
+  allocate(x_diff(start:goal))
+
+  allocate(a_h_x(start-1:goal+1))
+  allocate(a_h_y(start-l+1:goal))
+  allocate(a_h_z(start-sf:goal))
+  allocate(a_diag(start:goal))
+  allocate(b(start:goal))
+
   a_diag = 0.0d0
   a_h_x = 0.0d0
   a_h_y = 0.0d0
   a_h_z = 0.0d0
 
-  ! とりあえず行列の初期化はそのまま
-  do i = 1, mesh
-     a_diag(i) = -2.0d0*((1.0d0/h_x**2)+(1.0d0/h_y**2)+(1.0d0/h_z**2))
-     if(i <= mesh-(l-1)*(m-1)) a_h_z(i) = 1.0d0/h_z**2
-     if(i <= mesh-l+1 .and. mod(i,(l-1)*(m-1)) /= 0) a_h_y(i) = 1.0d0/h_y**2
-     if(mod(i,l-1) /= 0 .and. i /= mesh) a_h_x(i) = 1.0d0/h_x**2
+  do i = start-sf, goal
+     if(i >= start) a_diag(i) = -2.0d0*((1.0d0/h_x**2)+(1.0d0/h_y**2)+(1.0d0/h_z**2))
+     if(i >= start-1 .and. mod(i,l-1) /= 0 .and. i /= mesh) a_h_x(i) = 1.0d0/h_x**2
+     if(i >= start-l+1 .and. i <= mesh-l+1 .and. mod(i,sf) /= 0) a_h_y(i) = 1.0d0/h_y**2
+     if(i <= mesh-sf) a_h_z(i) = 1.0d0/h_z**2
   end do
+
+  ! goal%(l-1)=0であり、goal+1はmeshにはなり得ないため、条件式は不要
+  a_h_x(goal+1) = 1.0d0/h_x**2
+
 
   ! right-hand side
   b = 0.0d0
-  b_border_region = mesh-(l-1)*(m-1)
+  b_border_region = mesh-sf
   coef_h_x = 0
   coef_h_y = 0
-  do i = b_border_region+1, mesh
-     coef_h_x = mod(i-b_border_region-1,l-1) + 1
-     coef_h_y = (i-b_border_region-1)/(l-1) + 1
-     b(i) = -sin(coef_h_x*h_x*pi)*sin(coef_h_y*h_y*pi)/h_z**2
-  end do
+
+  ! sf単位での並列化なので、b_border_region+1は最後のノード以外には存在し得ない
+  if(myrank == nprocs-1) then
+     do i = b_border_region+1, mesh
+        coef_h_x = mod(i-b_border_region-1,l-1) + 1
+        coef_h_y = (i-b_border_region-1)/(l-1) + 1
+        b(i) = -sin(coef_h_x*h_x*pi)*sin(coef_h_y*h_y*pi)/h_z**2
+     end do
+  end if
 
   ! main loop
   count = 0
@@ -124,11 +141,10 @@ program mpi_rbsor_3d
      x_old = x
 
      ! calculate new vector
-     ! ここだけ並列化
      do i = start, goal, 2 ! odd number
         x(i) = (b(i) - a_h_x(i-1)*x(i-1) - a_h_x(i)*x(i+1) &
                      - a_h_y(i-l+1)*x(i-l+1) - a_h_y(i)*x(i+l-1) &
-                     - a_h_z(i-(l-1)*(m-1))*x(i-(l-1)*(m-1)) - a_h_z(i)*x(i+(l-1)*(m-1))) &
+                     - a_h_z(i-sf)*x(i-sf) - a_h_z(i)*x(i+sf)) &
                 * (omega/a_diag(i)) + (1-omega)*x(i)
      end do
 
@@ -141,7 +157,7 @@ program mpi_rbsor_3d
      do i = start+1, goal, 2 ! even number
         x(i) = (b(i) - a_h_x(i-1)*x(i-1) - a_h_x(i)*x(i+1) &
                      - a_h_y(i-l+1)*x(i-l+1) - a_h_y(i)*x(i+l-1) &
-                     - a_h_z(i-(l-1)*(m-1))*x(i-(l-1)*(m-1)) - a_h_z(i)*x(i+(l-1)*(m-1))) &
+                     - a_h_z(i-sf)*x(i-sf) - a_h_z(i)*x(i+sf)) &
                 * (omega/a_diag(i)) + (1-omega)*x(i)
      end do
      
@@ -158,6 +174,7 @@ program mpi_rbsor_3d
         norm_x_local = norm_x_local + x(i)**2
      end do
 
+     ! reduce norm_diff and norm_x
      call MPI_Allreduce(norm_diff_local, norm_diff, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
      call MPI_Allreduce(norm_x_local, norm_x, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
 
@@ -194,7 +211,7 @@ program mpi_rbsor_3d
   ! compare with analysed answer here
   ! write(*, *) "difference from analysis solution: ", diff
 
-  ! output
+  ! output for check
   if(myrank == 0) then
      do i = 1, l-1
         write(*, '(i3, e15.5)') i, x((l-1)*((m-1)/2+1)+i) ! i = 1-99, j = 50, k = 1
