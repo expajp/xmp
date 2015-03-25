@@ -52,18 +52,16 @@ program jacobi_3d
   h_z = (region_z_length)/n ! 1/n
   
   ! matrix
-  a_diag = 0.0d0
+  a_diag = -2.0d0*((1.0d0/h_x**2)+(1.0d0/h_y**2)+(1.0d0/h_z**2))
   a_h_x = 0.0d0
   a_h_y = 0.0d0
   a_h_z = 0.0d0
 
   do i = 1, mesh-1
-     a_diag(i) = -2.0d0*((1.0d0/h_x**2)+(1.0d0/h_y**2)+(1.0d0/h_z**2))
      if(i <= mesh-(l-1)*(m-1)) a_h_z(i) = 1.0d0/h_z**2
-     if(i <= mesh-l+1 .and. mod(i,(l-1)*(m-1)) /= 0) a_h_y(i) = 1.0d0/h_y**2
+     if(i <= mesh-l+1 .and. mod(i, n-1) <= (l-1)*(m-2)) a_h_y(i) = 1.0d0/h_y**2
      if(mod(i,l-1) /= 0) a_h_x(i) = 1.0d0/h_x**2
   end do
-  a_diag(mesh) = -2.0d0*((1.0d0/h_x**2)+(1.0d0/h_y**2)+(1.0d0/h_z**2))
 
   ! right-hand side
   b = 0.0d0
@@ -135,27 +133,9 @@ program jacobi_3d
   ! output
   write(*, *) "iteration: ", count
 
-  ! compare with analysed answer here
-  diff = 0.0d0
-
-  do i = 1, mesh
-     row = mod(i,m-1)
-     if(row == 0) row = l-1
-     column = 1 + (i-1)/(l-1)
-
-     row_d = dble(row)
-     column_d = dble(column)
-
-     !diff = diff + abs(x(i) - (sin(pi*h_x*row_d)*(exp(pi*h_y*column_d)-exp(-pi*h_y*column_d))*denomi))
-
-     !write(*, 100) row, column, x(i)
-  end do
-
-  ! write(*, *) "difference from analysis solution: ", diff
-
   ! output
-  do i = 1, n-1
-     write(*, '(i3, e15.5)') i, x((l-1)*((m-1)/2+1)+i)
+  do i = 1, l-1
+     write(*, '(i3, e15.5)') i, x((l-1)*((m-1)/2+1)+i) ! x(1:l-1, (m-1)/2+1, 1)
   end do
 
 
