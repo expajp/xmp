@@ -94,19 +94,18 @@ program mpi_rbsor_3d
   allocate(a_diag(start:goal))
   allocate(b(start:goal))
 
-  a_diag = 0.0d0
+  a_diag = -2.0d0*((1.0d0/h_x**2)+(1.0d0/h_y**2)+(1.0d0/h_z**2)) ! startより前は参照しないためこれでOK
   a_h_x = 0.0d0
   a_h_y = 0.0d0
   a_h_z = 0.0d0
 
   do i = start-sf, goal
-     if(i >= start) a_diag(i) = -2.0d0*((1.0d0/h_x**2)+(1.0d0/h_y**2)+(1.0d0/h_z**2))
-     if(i >= start-1 .and. mod(i,l-1) /= 0 .and. i /= mesh) a_h_x(i) = 1.0d0/h_x**2
-     if(i >= start-l+1 .and. i <= mesh-l+1 .and. mod(i,sf) /= 0) a_h_y(i) = 1.0d0/h_y**2
+     if(i >= start-1 .and. mod(i,l-1) /= 0) a_h_x(i) = 1.0d0/h_x**2
+     if(i >= start-l+1 .and. i <= mesh-l+1 .and. mod(i, n-1) <= (l-1)*(m-2)) a_h_y(i) = 1.0d0/h_y**2
      if(i <= mesh-sf) a_h_z(i) = 1.0d0/h_z**2
   end do
 
-  ! goal%(l-1)=0であり、goal+1はmeshにはなり得ないため、条件式は不要
+  ! goal%(l-1)=0であるため、条件式は不要
   a_h_x(goal+1) = 1.0d0/h_x**2
 
 
