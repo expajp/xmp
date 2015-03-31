@@ -1,6 +1,8 @@
 program xmp_sor_3d_2d_array
   implicit none
 
+  ! test comment
+
   ! mesh
   integer, parameter :: l = 100, m = 100, n = 127
   integer, parameter :: sf = (l-1)*(m-1) ! sf:surface
