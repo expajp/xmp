@@ -103,7 +103,7 @@ program xmp_sor_3d_2d_array
   if(myrank == 0) write(*,*) "epsilon = ", epsilon
 
   !$xmp task on p(4)
-  write(*,*) "1 x(sf, n-1) = ", x(sf, n-1)
+  write(*,*) "x(sf, n-1) = ", x(sf, n-1)
   !$xmp end task
 
   do
