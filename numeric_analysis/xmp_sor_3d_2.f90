@@ -1,10 +1,9 @@
-program xmp_sor_3d_2d_array
+program xmp_sor_3d_2
   implicit none
 
-  ! test comment
-
   ! mesh
-  integer, parameter :: l = 100, m = 100, n = 127
+  integer, parameter :: l = 100, m = 100, n = 129 ! 2^n 分割をしやすくするため
+  integer, parameter :: mesh = (l-1)*(m-1)*(n-1)
   integer, parameter :: sf = (l-1)*(m-1) ! sf:surface
 
   ! region
@@ -17,48 +16,47 @@ program xmp_sor_3d_2d_array
   real(8), parameter :: border_y_lower=0.0d0, border_y_upper=0.0d0
   real(8), parameter :: border_z_lower=0.0d0 ! border_z_upper=sin(pi*x)sin(pi*y)
 
-  ! epsilon
+  ! constants
   real(8), parameter :: epsilon = 1.000E-08
-
-  ! pi
   real(8), parameter :: pi = acos(-1.0d0)
-
-  ! denominator
-  real(8), parameter :: denomi = 1.0d0/(exp(pi)-exp(-pi))
-
-  ! omega
   real(8), parameter :: omega = 1.5 ! it must be from (1, 2)
 
   real(8) :: region_x_length, region_y_length, region_z_length
   real(8) :: h_x, h_y, h_z
 
-  ! real(8) :: x(-l+2:sf+l-1, n+1), x_old(-l+2:sf+l-1, n+1), x_diff(-l+2:sf+l-1, n+1) ! object of calc
-  real(8) :: x(-l+2:sf+l-1, 0:n), x_old(-l+2:sf+l-1, 0:n), x_diff(-l+2:sf+l-1, 0:n) ! object of calc
-  real(8) :: a_h_x(0:sf, 0:n), a_h_y(-l+2:sf, 0:n), a_h_z(sf, 0:n), a_diag ! left-hand side
-  real(8) :: b(sf, n) ! right_hand side
+  real(8) :: a_diag
+  real(8) :: x(sf, n-1), x_old(sf, n-1), x_diff(sf, n-1) ! object of calc
+  real(8) :: a_h_x(sf, n-1), a_h_y(sf, n-1), a_h_z(sf, n-1) ! left-hand side
+  real(8) :: b(sf, n-1) ! right_hand side
   integer :: coef_h_x, coef_h_y
 
-  real(8) :: norm_diff, norm_x ! error check
+  ! error check
+  real(8) :: norm_diff, norm_x
 
-  integer :: i, j ! iteration
-  integer :: count
+  ! iteration
+  integer :: i, j, count
 
-  ! variables for xmp
-  integer :: myrank
-  integer :: xmp_node_num
+  ! variables for XMP
+  integer :: myrank, nprocs
+  integer :: xmp_node_num, xmp_num_nodes
+
+
+  ! initialization
 
   ! xmp directives
   !$xmp nodes p(4)
-  !$xmp template t(0:n)
+  !$xmp template t(n-1)
   !$xmp distribute t(block) onto p
   !$xmp align(*,k) with t(k) :: x, x_old, x_diff, a_h_x, a_h_y, a_h_z, b
   !$xmp shadow x(0,1)
+  !$xmp shadow a_h_z(0,1)
 
   myrank = xmp_node_num()
+  nprocs = xmp_num_nodes()
 
-  write(*,*) "Hello! My Rank is ", myrank, "."
+  write(*,'(A,i2,A)') "Hello! My Rank is ", myrank, "."
 
-  ! initialization
+  ! constants
   region_x_length = region_x_upper - region_x_lower ! = 1
   region_y_length = region_y_upper - region_y_lower ! = 1
   region_z_length = region_z_upper - region_z_lower ! = 1
@@ -75,11 +73,13 @@ program xmp_sor_3d_2d_array
   !$xmp loop on t(j)
   do j = 1, n-1
      do i = 1, sf
-        if(j /= n-1) a_h_z(i, j) = 1.0d0/h_z**2
-        if(i <= (l-1)*(m-2)) a_h_y(i, j) = 1.0d0/h_y**2
         if(mod(i,l-1) /= 0) a_h_x(i, j) = 1.0d0/h_x**2
+        if(i <= (l-1)*(m-2)) a_h_y(i, j) = 1.0d0/h_y**2
+        if(j /= 0 .and. j /= n-1) a_h_z(i, j) = 1.0d0/h_z**2
      end do
   end do
+
+  !$xmp reflect(a_h_z)
 
   ! right-hand side
   b = 0.0d0
@@ -99,24 +99,26 @@ program xmp_sor_3d_2d_array
   norm_diff = 0.0d0
   norm_x = 0.0d0
 
+  ! 初期化サボって大丈夫かな？
   x = 0.0d0
   x_old = 0.0d0
 
-  if(myrank == 0) write(*,*) "epsilon = ", epsilon
+  if(myrank == 1) write(*,*) "epsilon = ", epsilon
 
-  !$xmp task on p(4)
-  write(*,*) "x(sf, n-1) = ", x(sf, n-1)
-  !$xmp end task
+  ! first sync, that is, initialize
+  !$xmp reflect(x)
 
   do
-     x_old = x
-
-     !$xmp barrier
-     !$xmp reflect(x)
-
-     ! 原因はやっぱりここから
+     ! x_old = x
+     !$xmp loop on t(j)
+     do j = 1, n-1
+        do i = 1, sf
+           x_old(i, j) = x(i, j)
+        end do
+     end do
 
      ! calculate new vector
+     ! 未定義領域の参照があるため、エラーが出たら一応ここを疑ってみること
      !$xmp loop on t(j)
      do j = 1, n-1
         do i = 1, sf
@@ -127,11 +129,18 @@ program xmp_sor_3d_2d_array
                 * (omega/a_diag) + (1-omega)*x(i, j)
         end do
      end do
-
-     ! ここまで   
      
+     ! message transfer
+     !$xmp reflect(x)
+
      ! calculate norm
-     x_diff = x - x_old
+     ! x_diff = x - x_old
+     !$xmp loop on t(j)
+     do j = 1, n-1
+        do i = 1, sf
+           x_diff(i, j) = x(i, j) - x_old(i, j)
+        end do
+     end do
 
      !$xmp loop on t(j) reduction(+:norm_diff,norm_x)
      do j = 1, n-1
@@ -151,7 +160,7 @@ program xmp_sor_3d_2d_array
      count = count+1
 
      ! shinchoku dou desuka?
-     if(mod(count,500) == 0 .and. myrank == 1) then
+     if(myrank == 1 .and. mod(count,500) == 0) then
         write(*, *) "iteration: ", count
         write(*, *) "relative error = ", norm_diff/norm_x
      end if
@@ -159,13 +168,13 @@ program xmp_sor_3d_2d_array
      ! preparation of next iteration
      norm_diff = 0.0d0
      norm_x = 0.0d0
-     
+
      !$xmp barrier
 
   end do
-  
+
   !$xmp barrier
-  
+
   ! output
   if(myrank == 1) write(*, *) "iteration: ", count
 
@@ -173,7 +182,7 @@ program xmp_sor_3d_2d_array
   ! write(*, *) "difference from analysis solution: ", diff
 
   ! output
-  if(myrank == 1) then
+  if(myrank == nprocs/2) then
      do i = 1, l-1
         write(*, '(i3, e15.5)') i, x((l-1)*((m-1)/2+1)+i, (n-1)/2)
      end do
@@ -181,7 +190,7 @@ program xmp_sor_3d_2d_array
 
 100 format(2i4, X, f10.8)
 
-end program xmp_sor_3d_2d_array
+end program xmp_sor_3d_2
 
-! 2015/03/25
+! 2015/04/01
 ! written by Shu OGAWARA
