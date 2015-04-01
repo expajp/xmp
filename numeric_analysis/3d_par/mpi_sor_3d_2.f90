@@ -67,7 +67,14 @@ program mpi_sor_3d_2
      rightnode = myrank+1
   end if
 
-  write(*, '(3(A,i4))') "myrank = ", myrank, ", start = ", start, ", goal = ", goal
+  allocate(x(sf, start-1:goal+1))
+  allocate(x_old(sf, start:goal))
+  allocate(x_diff(sf, start:goal))
+
+  allocate(a_h_x(sf, start:goal))
+  allocate(a_h_y(sf, start:goal))
+  allocate(a_h_z(sf, start-1:goal))
+  allocate(b(sf, start:goal))
 
   ! constants
   region_x_length = region_x_upper - region_x_lower ! = 1
@@ -76,38 +83,31 @@ program mpi_sor_3d_2
   h_x = (region_x_length)/l ! 1/l
   h_y = (region_y_length)/m ! 1/m
   h_z = (region_z_length)/n ! 1/n
-  
-  ! matrix
-  allocate(x(-l+2:sf+l-1, start-1:goal+1))
-  allocate(x_old(sf, start:goal))
-  allocate(x_diff(sf, start:goal))
 
-  allocate(a_h_x(0:sf+1, start:goal))
-  allocate(a_h_y(-l+2:sf, start:goal))
-  allocate(a_h_z(sf, start-1:goal))
-  allocate(b(sf, start:goal))
-
+  ! matrix  
   a_diag = -2.0d0*((1.0d0/h_x**2)+(1.0d0/h_y**2)+(1.0d0/h_z**2))
   a_h_x = 0.0d0
   a_h_y = 0.0d0
   a_h_z = 0.0d0
 
-  do j = start-1, goal
+  do j = start, goal
      do i = 1, sf
         if(mod(i,l-1) /= 0) a_h_x(i, j) = 1.0d0/h_x**2
         if(i <= (l-1)*(m-2)) a_h_y(i, j) = 1.0d0/h_y**2
-        if(j /= 0 .and. j /= n-1) a_h_z(i, j) = 1.0d0/h_z**2
+        if(j /= n-1) a_h_z(i, j) = 1.0d0/h_z**2
      end do
   end do
 
-  ! do j = start-1, goal
-  !    write(*, *) "myrank = ", myrank, "a_h_z(1, ", j, ") = ", a_h_z(1, j)
-  ! end do
+  ! message-sending
+  call mpi_sendrecv(x(1, goal), sf, MPI_REAL8, rightnode, 100, &
+       x(1, start-1), sf, MPI_REAL8, leftnode, 100, &
+       MPI_COMM_WORLD, istat, ierr)
 
   ! right-hand side
   b = 0.0d0
   coef_h_x = 0
   coef_h_y = 0
+
   if(myrank == nprocs-1) then
      do i = 1, sf
         coef_h_x = mod(i-1, l-1) + 1

@@ -1,8 +1,8 @@
-program sor_2d
+program sor_2d_2darray
   implicit none
 
   ! mesh
-  integer, parameter :: l = 100, m = 100
+  integer, parameter :: l = 100, m = 129
   integer, parameter :: mesh = (l-1)*(m-1)
 
   ! region
@@ -26,17 +26,17 @@ program sor_2d
   real(8), parameter :: omega = 1.5 ! it must be from (1, 2)
 
   real(8) :: region_x_length, region_y_length
-  real(8) :: h, k
+  real(8) :: h_x, h_y
 
-  real(8) :: x(mesh), x_old(mesh), x_diff(mesh) ! object of calc
-  real(8) :: a_k(mesh-l+1), a_h(mesh-1), a_diag(1:mesh) ! left-hand side
-  real(8) :: b(mesh) ! right_hand side
+  real(8) :: a_diag
+  real(8) :: x(l-1, m-1), x_old(l-1, m-1), x_diff(l-1, m-1) ! object of calc
+  real(8) :: a_h_x(l-1, m-1), a_h_y(l-1, m-1) ! left-hand side
+  real(8) :: b(l-1, m-1) ! right_hand side
 
   real(8) :: norm_diff, norm_x ! error check
 
   ! compare with analysis
   real(8) :: diff
-  integer :: row, column
   real(8) :: row_d, column_d
 
   integer :: i, j ! iteration
@@ -45,25 +45,25 @@ program sor_2d
   ! initialization
   region_x_length = region_x_upper - region_x_lower ! = 1
   region_y_length = region_y_upper - region_y_lower ! = 1
-  h = (region_x_length)/l ! 1/l
-  k = (region_y_length)/m ! 1/m
+  h_x = (region_x_length)/l ! 1/l
+  h_y = (region_y_length)/m ! 1/m
   
   ! matrix
-  a_diag = 0.0d0
-  a_h = 0.0d0
-  a_k = 0.0d0
+  a_diag = -2.0d0*((1/h_x**2)+(1/h_y**2))
+  a_h_x = 0.0d0
+  a_h_y = 0.0d0
 
-  do i = 1, mesh-1
-     a_diag(i) = -2.0d0*((1/h**2)+(1/k**2))
-     if(i <= mesh-l+1) a_k(i) = 1.0d0/k**2
-     if(mod(i,m-1) /= 0) a_h(i) = 1.0d0/h**2
+  do j = 1, m-1
+     do i = 1, l-1
+        if(j <= m-2) a_h_y(i, j) = 1.0d0/h_y**2
+        if(i /= l-1) a_h_x(i, j) = 1.0d0/h_x**2
+     end do
   end do
-  a_diag(mesh) = -2.0d0*((1/h**2)+(1/k**2))
 
   ! right-hand side
   b = 0.0d0
-  do i = mesh-l+2, mesh
-     b(i) = -sin((i-mesh+l-1)*h*pi)/k**2
+  do i = 1, l-1
+     b(i, m-1) = -sin(i*h_x*pi)/h_y**2
   end do
 
   ! main loop
@@ -77,32 +77,37 @@ program sor_2d
   write(*,*) "epsilon = ", epsilon
 
   do
-     x_old = x
+     ! x_old = x <-バグの温床
+     do j = 1, m-1
+        do i = 1, l-1
+           x_old(i, j) = x(i, j)
+        end do
+     end do
 
      ! calculate new vector
-     x(1) = (b(1)-a_k(1)*x(l)-a_h(1)*x(2)) * (omega/a_diag(1)) + (1-omega)*x(1)
-
-     do i = 2, l-1
-        x(i) = (b(i)-a_h(i)*x(i+1)-a_h(i-1)*x(i-1)-a_k(i)*x(i+l-1)) * (omega/a_diag(i)) + (1-omega)*x(i)
+     do j = 1, m-1
+        do i = 1, l-1
+           x(i, j) = (b(i, j) &
+                - a_h_x(i, j)*x(i+1, j) - a_h_x(i-1, j)*x(i-1, j) &
+                - a_h_y(i, j)*x(i, j+1) - a_h_y(i, j-1)*x(i, j-1)) &
+                * (omega/a_diag) + (1-omega)*x(i, j)
+        end do
      end do
-
-     do i = l, mesh-l
-        x(i) = (b(i)-a_h(i)*x(i+1)-a_h(i-1)*x(i-1)-a_k(i)*x(i+l-1)-a_k(i-l+1)*x(i-l+1)) &
-                * (omega/a_diag(i)) + (1-omega)*x(i)
-     end do
-
-     do i = mesh-l+1, mesh-1
-        x(i) = (b(i)-a_h(i)*x(i+1)-a_h(i-1)*x(i-1)-a_k(i-l+1)*x(i-l+1)) * (omega/a_diag(i)) + (1-omega)*x(i)
-     end do
-
-     x(mesh) = (b(mesh)-a_h(mesh-1)*x(mesh-1)-a_k(mesh-l+1)*x(mesh-l+1)) * (omega/a_diag(mesh)) + (1-omega)*x(mesh)
-
      
      ! calculate norm
-     x_diff = x - x_old
-     do i = 1, mesh
-        norm_diff = norm_diff + x_diff(i)**2
-        norm_x = norm_x + x(i)**2
+
+     ! x_diff = x - x_old <-バグの温床
+     do j = 1, m-1
+        do i = 1, l-1
+           x_diff(i, j) = x(i, j) - x_old(i, j)
+        end do
+     end do
+
+     do j = 1, m-1
+        do i = 1, l-1
+           norm_diff = norm_diff + x_diff(i, j)**2
+           norm_x = norm_x + x(i, j)**2
+        end do
      end do
 
      norm_diff = sqrt(norm_diff)
@@ -132,24 +137,20 @@ program sor_2d
   ! compare with analysed answer here
   diff = 0.0d0
 
-  do i = 1, mesh
-     row = mod(i,m-1)
-     if(row == 0) row = l-1
-     column = 1 + (i-1)/(l-1)
-
-     row_d = dble(row)
-     column_d = dble(column)
-
-     diff = diff + abs(x(i) - (sin(pi*h*row_d)*(exp(pi*k*column_d)-exp(-pi*k*column_d))*denomi))
-
-     !write(*, 100) row, column, x(i)
+  do j = 1, m-1
+     do i = 1, l-1
+        row_d = dble(i)
+        column_d = dble(j)
+        diff = diff + abs(x(i, j) - (sin(pi*h_x*row_d)*(exp(pi*h_y*column_d)-exp(-pi*h_y*column_d))*denomi))
+        ! write(*, 100) i, j, x(i, j)
+     end do
   end do
 
   write(*, *) "difference from analysis solution: ", diff
 
 100 format(2i4, X, f10.8)
 
-end program sor_2d
+end program sor_2d_2darray
 
-! 2015/01/23
+! 2015/04/01
 ! written by Shu OGAWARA
