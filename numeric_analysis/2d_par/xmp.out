@@ -1,0 +1,25 @@
+ epsilon =   9.99999993922529029E-009
+ iteration:          500
+ relative error =   5.44869871403837777E-004
+ iteration:         1000
+ relative error =   1.63969637707326102E-004
+ iteration:         1500
+ relative error =   5.58624176001789528E-005
+ iteration:         2000
+ relative error =   1.93603320401398165E-005
+ iteration:         2500
+ relative error =   6.74595126076719511E-006
+ iteration:         3000
+ relative error =   2.35522937548204207E-006
+ iteration:         3500
+ relative error =   8.22879793414185728E-007
+ iteration:         4000
+ relative error =   2.87575445591692621E-007
+ iteration:         4500
+ relative error =   1.00509472275964428E-007
+ iteration:         5000
+ relative error =   3.51298428268099101E-008
+ iteration:         5500
+ relative error =   1.22786422285880638E-008
+ iteration:         5597
+ difference from analysis solution:   0.10119345403337247     
