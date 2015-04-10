@@ -105,6 +105,9 @@ program xmp_sor_3d_2
 
   if(myrank == 1) write(*,*) "epsilon = ", epsilon
 
+  ! first sync, that is, initialize
+  !$xmp reflect(x)
+
   do
      ! x_old = x
      !$xmp loop on t(j)
