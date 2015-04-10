@@ -103,7 +103,9 @@ program xmp_sor_3d_2
   x = 0.0d0
   x_old = 0.0d0
 
-  if(myrank == 1) write(*,*) "epsilon = ", epsilon
+  !$xmp task on p(1)
+  write(*,*) "epsilon = ", epsilon
+  !$xmp end task
 
   ! first sync, that is, initialize
   !$xmp reflect(x)
@@ -160,10 +162,12 @@ program xmp_sor_3d_2
      count = count+1
 
      ! shinchoku dou desuka?
-     if(myrank == 1 .and. mod(count,500) == 0) then
+     !$xmp task on p(1)
+     if(mod(count,500) == 0) then
         write(*, *) "iteration: ", count
         write(*, *) "relative error = ", norm_diff/norm_x
      end if
+     !$xmp end task
 
      ! preparation of next iteration
      norm_diff = 0.0d0
@@ -176,17 +180,16 @@ program xmp_sor_3d_2
   !$xmp barrier
 
   ! output
-  if(myrank == 1) write(*, *) "iteration: ", count
-
-  ! compare with analysed answer here
-  ! write(*, *) "difference from analysis solution: ", diff
+  !$xmp task on p(1)
+  write(*, *) "iteration: ", count
+  !$xmp end task
 
   ! output
-  if(myrank == nprocs/2) then
-     do i = 1, l-1
-        write(*, '(i3, e15.5)') i, x((l-1)*((m-1)/2+1)+i, (n-1)/2)
-     end do
-  end if
+  !$xmp task on p(2)
+  do i = 1, l-1
+     write(*, '(i3, e15.5)') i, x((l-1)*((m-1)/2+1)+i, (n-1)/2)
+  end do
+  !$xmp end task
 
 100 format(2i4, X, f10.8)
 

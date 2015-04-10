@@ -8,3 +8,4 @@ a.out
 __omni_temp_*.F90
 *~
 #*#
+*/tmp/*
