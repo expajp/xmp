@@ -36,8 +36,8 @@ program xmp_sor_3d_2
   integer :: i, j, count
 
   ! variables for XMP
-  integer :: myrank, nprocs
-  integer :: xmp_node_num, xmp_num_nodes
+  !integer :: myrank, nprocs
+  !integer :: xmp_node_num, xmp_num_nodes
 
 
   ! initialization
@@ -50,10 +50,10 @@ program xmp_sor_3d_2
   !$xmp shadow x(0,1)
   !$xmp shadow a_h_z(0,1)
 
-  myrank = xmp_node_num()
-  nprocs = xmp_num_nodes()
+  !myrank = xmp_node_num()
+  !nprocs = xmp_num_nodes()
 
-  write(*,'(A,i2,A)') "Hello! My Rank is ", myrank, "."
+  !write(*,'(A,i2,A)') "Hello! My Rank is ", myrank, "."
 
   ! constants
   region_x_length = region_x_upper - region_x_lower ! = 1
