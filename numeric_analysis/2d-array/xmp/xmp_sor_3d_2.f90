@@ -3,7 +3,6 @@ program xmp_sor_3d_2
 
   ! mesh
   integer, parameter :: l = 100, m = 100, n = 129 ! 2^n 分割をしやすくするため
-  integer, parameter :: mesh = (l-1)*(m-1)*(n-1)
   integer, parameter :: sf = (l-1)*(m-1) ! sf:surface
 
   ! region
@@ -25,8 +24,8 @@ program xmp_sor_3d_2
   real(8) :: h_x, h_y, h_z
 
   real(8) :: a_diag
-  real(8) :: x(sf, n-1), x_old(sf, n-1), x_diff(sf, n-1) ! object of calc
-  real(8) :: a_h_x(sf, n-1), a_h_y(sf, n-1), a_h_z(sf, n-1) ! left-hand side
+  real(8) :: x(-l+2:sf+l-1, n-1), x_old(sf, n-1), x_diff(sf, n-1) ! object of calc
+  real(8) :: a_h_x(0:sf+1, n-1), a_h_y(-l+2:sf, n-1), a_h_z(sf, n-1) ! left-hand side
   real(8) :: b(sf, n-1) ! right_hand side
   integer :: coef_h_x, coef_h_y
 
@@ -134,6 +133,11 @@ program xmp_sor_3d_2
      
      ! message transfer
      !$xmp reflect(x)
+
+     !!$xmp loop on t(j)
+     !do j = 1, n-1
+     !   write(*, '(A, i3, A, i3, A, f10.5)') "count = ", count, " x(1, ", j, ") = ", x(1, j)
+     !end do
 
      ! calculate norm
      ! x_diff = x - x_old
