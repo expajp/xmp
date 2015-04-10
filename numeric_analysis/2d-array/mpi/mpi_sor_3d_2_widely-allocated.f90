@@ -1,4 +1,4 @@
-program mpi_sor_3d_2
+program mpi_sor_3d_2_widely_allocated
   use mpi
   implicit none
 
@@ -218,15 +218,19 @@ program mpi_sor_3d_2
      end do
   end if
 
-  deallocate(x, x_old, x_diff)
-  deallocate(a_h_x, a_h_y, a_h_z)
-  deallocate(b)
+  ! 仮想マシンではこれがないとエラーを吐く
+  ! 逆に、piではこれがあるとここの部分で処理が止まって実行が終わらない
+  ! deallocate(x, x_old, x_diff)
+  ! deallocate(a_h_x, a_h_y, a_h_z)
+  ! deallocate(b)
 
   call mpi_finalize(ierr)
 
 100 format(2i4, X, f10.8)
 
-end program mpi_sor_3d_2
+  ! write(*, *) "myrank = ", myrank, " I finished execution on this node."
+
+end program mpi_sor_3d_2_widely_allocated
 
 ! 2015/03/31
 ! written by Shu OGAWARA
