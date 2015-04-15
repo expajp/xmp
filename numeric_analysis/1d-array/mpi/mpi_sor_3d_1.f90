@@ -71,8 +71,8 @@ program mpi_rbsor_3d
      rightnode = myrank+1
   end if
 
-  write(*, '(2(A,i4))') "nstart = ", nstart, ", ngoal = ", ngoal
-  write(*, '(2(A,i7))') "start = ", start, ", goal = ", goal
+  ! write(*, '(2(A,i4))') "nstart = ", nstart, ", ngoal = ", ngoal
+  ! write(*, '(2(A,i7))') "start = ", start, ", goal = ", goal
 
 
   ! constants
@@ -101,7 +101,7 @@ program mpi_rbsor_3d
 
   do i = start-sf, goal
      if(i >= start-1 .and. mod(i,l-1) /= 0) a_h_x(i) = 1.0d0/h_x**2
-     if(i >= start-l+1 .and. i <= mesh-l+1 .and. mod(i, n-1) <= (l-1)*(m-2)) a_h_y(i) = 1.0d0/h_y**2
+     if(i >= start-l+1 .and. i <= mesh-l+1 .and. mod(i, sf) <= (l-1)*(m-2)) a_h_y(i) = 1.0d0/h_y**2
      if(i <= mesh-sf) a_h_z(i) = 1.0d0/h_z**2
   end do
 
@@ -213,7 +213,7 @@ program mpi_rbsor_3d
   ! output for check
   if(myrank == 0) then
      do i = 1, l-1
-        write(*, '(i3, e15.5)') i, x((l-1)*((m-1)/2+1)+i) ! i = 1-99, j = 50, k = 1
+        write(*, '(i3, e15.5)') i, x((l-1)*((m-1)/2)+i) ! i = 1-99, j = 49, k = 1
      end do
   end if
 
