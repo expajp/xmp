@@ -2,7 +2,8 @@ program sor_3d
   implicit none
 
   ! mesh
-  integer, parameter :: l = 50, m = 50, n = 50
+  integer, parameter :: l = 100, m = 100, n = 129
+  integer, parameter :: sf = (l-1)*(m-1)
   integer, parameter :: mesh = (l-1)*(m-1)*(n-1)
 
   ! region
@@ -56,14 +57,14 @@ program sor_3d
   a_h_z = 0.0d0
 
   do i = 1, mesh
-     if(i <= mesh-(l-1)*(m-1)) a_h_z(i) = 1.0d0/h_z**2
-     if(i <= mesh-l+1 .and. mod(i, n-1) <= (l-1)*(m-2)) a_h_y(i) = 1.0d0/h_y**2
-     if(mod(i,l-1) /= 0 .and. i /= mesh) a_h_x(i) = 1.0d0/h_x**2
+     if(mod(i,l-1) /= 0) a_h_x(i) = 1.0d0/h_x**2
+     if(mod(i, sf) <= (l-1)*(m-2)) a_h_y(i) = 1.0d0/h_y**2
+     if(i <= mesh-sf) a_h_z(i) = 1.0d0/h_z**2
   end do
 
   ! right-hand side
   b = 0.0d0
-  b_border_region = mesh-(l-1)*(m-1)
+  b_border_region = mesh-sf
   coef_h_x = 0
   coef_h_y = 0
   do i = b_border_region+1, mesh
@@ -89,7 +90,7 @@ program sor_3d
      do i = 1, mesh
         x(i) = (b(i) - a_h_x(i-1)*x(i-1) - a_h_x(i)*x(i+1) &
                      - a_h_y(i-l+1)*x(i-l+1) - a_h_y(i)*x(i+l-1) &
-                     - a_h_z(i-(l-1)*(m-1))*x(i-(l-1)*(m-1)) - a_h_z(i)*x(i+(l-1)*(m-1))) &
+                     - a_h_z(i-sf)*x(i-sf) - a_h_z(i)*x(i+sf)) &
                 * (omega/a_diag(i)) + (1-omega)*x(i)
      end do
      
@@ -128,8 +129,8 @@ program sor_3d
   ! write(*, *) "difference from analysis solution: ", diff
 
   ! output
-  do i = 1, n-1
-     write(*, '(i3, e15.5)') i, x((l-1)*((m-1)/2+1)+i)
+  do i = 1, l-1
+     write(*, '(i3, e15.5)') i, x((l-1)*((m-1)/2)+i)
   end do
 
 

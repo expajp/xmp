@@ -1,10 +1,10 @@
-program sor_3d_2
+program sor_3d
   implicit none
 
   ! mesh
   integer, parameter :: l = 100, m = 100, n = 129
   integer, parameter :: mesh = (l-1)*(m-1)*(n-1)
-  integer, parameter :: sf = (l-1)*(m-1) ! sf:surface
+  integer, parameter :: sf = (l-1)*(m-1)
 
   ! region
   real(8), parameter :: region_x_lower=0.0d0, region_x_upper=1.0d0
@@ -31,10 +31,11 @@ program sor_3d_2
   real(8) :: region_x_length, region_y_length, region_z_length
   real(8) :: h_x, h_y, h_z
 
-  real(8) :: x(-l+2:sf+l-1, n+1), x_old(-l+2:sf+l-1, n+1), x_diff(-l+2:sf+l-1, n+1) ! object of calc
-  real(8) :: a_h_x_upper(sf, n), a_h_y_upper(sf, n), a_h_z_upper(sf, n) ! left-hand side
-  real(8) :: a_h_x_lower(sf, n), a_h_y_lower(sf, n), a_h_z_lower(sf, n), a_diag ! left-hand side
-  real(8) :: b(sf, n) ! right_hand side
+  real(8) :: x(-sf+1:mesh+sf), x_old(mesh), x_diff(mesh) ! object of calc
+  real(8) :: a_h_x_upper(mesh), a_h_y_upper(mesh), a_h_z_upper(mesh) ! left-hand side
+  real(8) :: a_h_x_lower(mesh), a_h_y_lower(mesh), a_h_z_lower(mesh), a_diag ! left-hand side
+  real(8) :: b(mesh) ! right_hand side
+  integer :: b_border_region ! the upper of region of b inserted border's value
   integer :: coef_h_x, coef_h_y
 
   real(8) :: norm_diff, norm_x ! error check
@@ -59,31 +60,27 @@ program sor_3d_2
   a_h_y_lower = 0.0d0
   a_h_z_lower = 0.0d0
 
-  do j = 1, n-1
-     do i = 1, sf
-        if(mod(i,l-1) /= 0) a_h_x_upper(i, j) = 1.0d0/h_x**2 ! この条件で一番下の見切れ部分もきちんと0になる
-        if(i <= (l-1)*(m-2)) a_h_y_upper(i, j) = 1.0d0/h_y**2 ! この条件でｒｙ
-        if(j /= n-1) a_h_z_upper(i, j) = 1.0d0/h_z**2
-     end do
+  do i = 1, mesh
+     if(mod(i,l-1) /= 0) a_h_x_upper(i) = 1.0d0/h_x**2
+     if(mod(i,sf) <= (l-1)*(m-2)) a_h_y_upper(i) = 1.0d0/h_y**2
+     if(i <= mesh-sf) a_h_z_upper(i) = 1.0d0/h_z**2
   end do
 
-  do j = 1, n-1
-     do i = 1, sf
-        if(mod(i,l-1) /= 1) a_h_x_lower(i, j) = 1.0d0/h_x**2 ! この条件で一番上の見切れ部分もきちんと0になる
-        if(i > l-1) a_h_y_lower(i, j) = 1.0d0/h_y**2 ! この条件でｒｙ
-        if(j /= 1) a_h_z_lower(i, j) = 1.0d0/h_z**2
-     end do
+  do i = 1, mesh
+     if(mod(i,l-1) /= 1) a_h_x_lower(i) = 1.0d0/h_x**2
+     if(mod(i,sf) > l-1) a_h_y_lower(i) = 1.0d0/h_y**2
+     if(i > sf) a_h_z_lower(i) = 1.0d0/h_z**2
   end do
-
 
   ! right-hand side
   b = 0.0d0
+  b_border_region = mesh-sf
   coef_h_x = 0
   coef_h_y = 0
-  do i = 1, sf
-     coef_h_x = mod(i-1, l-1) + 1
-     coef_h_y = (i-1)/(l-1) + 1
-     b(i, n-1) = -sin(coef_h_x*h_x*pi)*sin(coef_h_y*h_y*pi)/h_z**2
+  do i = b_border_region+1, mesh
+     coef_h_x = mod(i-b_border_region-1,l-1) + 1
+     coef_h_y = (i-b_border_region-1)/(l-1) + 1
+     b(i) = -sin(coef_h_x*h_x*pi)*sin(coef_h_y*h_y*pi)/h_z**2
   end do
 
   ! main loop
@@ -98,37 +95,27 @@ program sor_3d_2
 
   do
      ! x_old = x
-     do j = 1, n-1
-        do i = 1, sf
-           x_old(i, j) = x(i, j)
-        end do
+     do i = 1, mesh
+        x_old(i) = x(i)
      end do
 
      ! calculate new vector
-     do j = 1, n-1
-        do i = 1, sf
-           x(i, j) = (b(i, j) &
-                - a_h_x_lower(i, j)*x(i-1, j) - a_h_x_upper(i, j)*x(i+1, j) &
-                - a_h_y_lower(i, j)*x(i-l+1, j) - a_h_y_upper(i, j)*x(i+l-1, j) &
-                - a_h_z_lower(i, j)*x(i, j-1) - a_h_z_upper(i, j)*x(i, j+1) ) &
-                * (omega/a_diag) + (1-omega)*x(i, j)
-        end do
+     do i = 1, mesh
+        x(i) = (b(i) - a_h_x_lower(i)*x(i-1) - a_h_x_upper(i)*x(i+1) &
+                     - a_h_y_lower(i)*x(i-l+1) - a_h_y_upper(i)*x(i+l-1) &
+                     - a_h_z_lower(i)*x(i-sf) - a_h_z_upper(i)*x(i+sf)) &
+                * (omega/a_diag) + (1-omega)*x(i)
      end do
      
      ! calculate norm
      ! x_diff = x - x_old
-     do j = 1, n-1
-        do i = 1, sf
-           x_diff(i, j) = x(i, j) - x_old(i, j)
-        end do
+     do i = 1, mesh
+        x_diff(i) = x(i) - x_old(i)
      end do
 
-
-     do j = 1, n-1
-        do i = 1, sf
-           norm_diff = norm_diff + x_diff(i, j)**2
-           norm_x = norm_x + x(i, j)**2
-        end do
+     do i = 1, mesh
+        norm_diff = norm_diff + x_diff(i)**2
+        norm_x = norm_x + x(i)**2
      end do
 
      norm_diff = sqrt(norm_diff)
@@ -160,13 +147,13 @@ program sor_3d_2
 
   ! output
   do i = 1, l-1
-     write(*, '(i3, e15.5)') i, x((l-1)*((m-1)/2)+i, 1)
+     write(*, '(i3, e15.5)') i, x((l-1)*((m-1)/2)+i)
   end do
 
 
 100 format(2i4, X, f10.8)
 
-end program sor_3d_2
+end program sor_3d
 
-! 2015/03/17
+! 2015/01/28
 ! written by Shu OGAWARA
