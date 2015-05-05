@@ -23,10 +23,11 @@ program xmp_sor_3d_2
   real(8) :: region_x_length, region_y_length, region_z_length
   real(8) :: h_x, h_y, h_z
 
-  real(8) :: x(-l+2:sf+l-1, n-1), x_old(sf, n-1), x_diff(sf, n-1) ! object of calc
+  real(8) :: x(sf, n-1), x_old(sf, n-1), x_diff(sf, n-1) ! object of calc
   real(8) :: a_h_x_upper(sf, n-1), a_h_y_upper(sf, n-1), a_h_z_upper(sf, n-1) ! left-hand side
   real(8) :: a_h_x_lower(sf, n-1), a_h_y_lower(sf, n-1), a_h_z_lower(sf, n-1), a_diag ! left-hand side
   real(8) :: b(sf, n-1) ! right_hand side
+  real(8) :: x_buffer
   integer :: coef_h_x, coef_h_y
 
   ! error check
@@ -43,7 +44,7 @@ program xmp_sor_3d_2
   ! initialization
 
   ! xmp directives
-  !$xmp nodes p(4)
+  !$xmp nodes p(*)
   !$xmp template t(n-1)
   !$xmp distribute t(block) onto p
   !$xmp align(*,k) with t(k) :: x, x_old, x_diff, b
@@ -100,7 +101,7 @@ program xmp_sor_3d_2
   coef_h_x = 0
   coef_h_y = 0
 
-  !$xmp task on p(4)
+  !$xmp task on t(n-1)
   do i = 1, sf
      coef_h_x = mod(i-1, l-1) + 1
      coef_h_y = (i-1)/(l-1) + 1
@@ -112,13 +113,14 @@ program xmp_sor_3d_2
   count = 0
   norm_diff = 0.0d0
   norm_x = 0.0d0
+  x_buffer = 0.0d0
 
   ! array指示文
   !$xmp loop on t(j)
   do j = 1, n-1
-     do i = -l+2, sf+l-1
+     do i = 1, sf
         x(i, j) = 0.0d0
-        if(i > 0 .and. i <= sf) x_old(i, j) = 0.0d0
+        x_old(i, j) = 0.0d0
      end do
   end do
 
@@ -144,11 +146,25 @@ program xmp_sor_3d_2
      do j = 1, n-1
         do i = 1, sf
 
-           x(i, j) = (b(i, j) &
-                - a_h_x_lower(i, j)*x(i-1, j) - a_h_x_upper(i, j)*x(i+1, j) &
-                - a_h_y_lower(i, j)*x(i-l+1, j) - a_h_y_upper(i, j)*x(i+l-1, j) &
-                - a_h_z_lower(i, j)*x(i, j-1) - a_h_z_upper(i, j)*x(i, j+1) ) &
-                * (omega/a_diag) + (1-omega)*x(i, j)
+
+           x_buffer = b(i, j)
+
+           if(i /= 1) x_buffer = x_buffer - a_h_x_lower(i, j)*x(i-1, j)
+           if(i /= sf) x_buffer = x_buffer - a_h_x_upper(i, j)*x(i+1, j)
+
+           if(i > l-1) x_buffer = x_buffer - a_h_y_lower(i, j)*x(i-l+1, j)
+           if(i <= sf-l+1) x_buffer = x_buffer - a_h_y_upper(i, j)*x(i+l-1, j)
+
+           if(j /= 1) x_buffer = x_buffer - a_h_z_lower(i, j)*x(i, j-1)
+           if(j /= n-1) x_buffer = x_buffer - a_h_z_upper(i, j)*x(i, j+1)
+
+           x(i, j) = x_buffer * (omega/a_diag) + (1-omega)*x(i, j)
+
+           !x(i, j) = (b(i, j) &
+           !     - a_h_x_lower(i, j)*x(i-1, j) - a_h_x_upper(i, j)*x(i+1, j) &
+           !     - a_h_y_lower(i, j)*x(i-l+1, j) - a_h_y_upper(i, j)*x(i+l-1, j) &
+           !     - a_h_z_lower(i, j)*x(i, j-1) - a_h_z_upper(i, j)*x(i, j+1) ) &
+           !     * (omega/a_diag) + (1-omega)*x(i, j)
            
         end do
      end do
@@ -205,7 +221,7 @@ program xmp_sor_3d_2
   !$xmp end task
 
   ! output
-  !$xmp task on p(1)
+  !$xmp task on t(1)
   do i = 1, l-1
      write(*, '(i3, e15.5)') i, x((l-1)*((m-1)/2)+i, 1)
   end do
@@ -217,4 +233,5 @@ end program xmp_sor_3d_2
 
 ! 2015/04/01
 ! 2015/04/28
+! 2015/05/05
 ! written by Shu OGAWARA
