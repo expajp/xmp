@@ -1,0 +1,90 @@
+1,20c1,20
+<  epsilon =  9.999999939225290E-09
+<  iteration:  500
+<  relative error =  4.462395077503128E-04
+<  iteration:  1000
+<  relative error =  1.139010832490595E-04
+<  iteration:  1500
+<  relative error =  3.472395264190487E-05
+<  iteration:  2000
+<  relative error =  1.080762687405491E-05
+<  iteration:  2500
+<  relative error =  3.372012416281962E-06
+<  iteration:  3000
+<  relative error =  1.052466386507588E-06
+<  iteration:  3500
+<  relative error =  3.285195707111567E-07
+<  iteration:  4000
+<  relative error =  1.025470998859542E-07
+<  iteration:  4500
+<  relative error =  3.201018978631689E-08
+<  iteration:  4999
+---
+>  epsilon =   9.99999993922529029E-009
+>  iteration:          500
+>  relative error =   4.40314531865021181E-004
+>  iteration:         1000
+>  relative error =   1.08281823585756683E-004
+>  iteration:         1500
+>  relative error =   3.15315554522730847E-005
+>  iteration:         2000
+>  relative error =   9.34329510036544261E-006
+>  iteration:         2500
+>  relative error =   2.77352078933630271E-006
+>  iteration:         3000
+>  relative error =   8.23503858554901820E-007
+>  iteration:         3500
+>  relative error =   2.44522921293785202E-007
+>  iteration:         4000
+>  relative error =   7.26070027119369794E-008
+>  iteration:         4500
+>  relative error =   2.15595094569033871E-008
+>  iteration:         4816
+25c25
+<   5    0.12681E-03
+---
+>   5    0.12682E-03
+44c44
+<  24    0.55493E-03
+---
+>  24    0.55494E-03
+47,48c47,48
+<  27    0.60808E-03
+<  28    0.62462E-03
+---
+>  27    0.60809E-03
+>  28    0.62463E-03
+59,60c59,60
+<  39    0.76273E-03
+<  40    0.77098E-03
+---
+>  39    0.76274E-03
+>  40    0.77099E-03
+80c80
+<  60    0.77098E-03
+---
+>  60    0.77099E-03
+82c82
+<  62    0.75373E-03
+---
+>  62    0.75374E-03
+85c85
+<  65    0.72230E-03
+---
+>  65    0.72231E-03
+88c88
+<  68    0.68446E-03
+---
+>  68    0.68447E-03
+95c95
+<  75    0.57322E-03
+---
+>  75    0.57323E-03
+102c102
+<  82    0.43437E-03
+---
+>  82    0.43438E-03
+108c108
+<  88    0.29842E-03
+---
+>  88    0.29843E-03
