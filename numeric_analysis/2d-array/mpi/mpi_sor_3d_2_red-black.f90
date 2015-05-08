@@ -1,4 +1,4 @@
-program mpi_sor_3d_2_widely_allocated
+program mpi_sor_3d_2_red_black
   use mpi
   implicit none
 
@@ -152,7 +152,15 @@ program mpi_sor_3d_2_widely_allocated
      ! you don't need sync for the first sequence
      ! calculate new vector
      do j = start, goal, 2 ! odd numver
-        do i = 1, sf
+        do i = 1, sf, 2
+           x(i, j) = (b(i, j) &
+                - a_h_x_lower(i, j)*x(i-1, j) - a_h_x_upper(i, j)*x(i+1, j) &
+                - a_h_y_lower(i, j)*x(i-l+1, j) - a_h_y_upper(i, j)*x(i+l-1, j) &
+                - a_h_z_lower(i, j)*x(i, j-1) - a_h_z_upper(i, j)*x(i, j+1) ) &
+                * (omega/a_diag) + (1-omega)*x(i, j)
+        end do
+
+        do i = 2, sf, 2
            x(i, j) = (b(i, j) &
                 - a_h_x_lower(i, j)*x(i-1, j) - a_h_x_upper(i, j)*x(i+1, j) &
                 - a_h_y_lower(i, j)*x(i-l+1, j) - a_h_y_upper(i, j)*x(i+l-1, j) &
@@ -168,7 +176,15 @@ program mpi_sor_3d_2_widely_allocated
           MPI_COMM_WORLD, istat, ierr)
      
      do j = start+1, goal, 2 ! even numver
-        do i = 1, sf
+        do i = 1, sf, 2
+           x(i, j) = (b(i, j) &
+                - a_h_x_lower(i, j)*x(i-1, j) - a_h_x_upper(i, j)*x(i+1, j) &
+                - a_h_y_lower(i, j)*x(i-l+1, j) - a_h_y_upper(i, j)*x(i+l-1, j) &
+                - a_h_z_lower(i, j)*x(i, j-1) - a_h_z_upper(i, j)*x(i, j+1) ) &
+                * (omega/a_diag) + (1-omega)*x(i, j)
+        end do
+
+        do i = 2, sf, 2
            x(i, j) = (b(i, j) &
                 - a_h_x_lower(i, j)*x(i-1, j) - a_h_x_upper(i, j)*x(i+1, j) &
                 - a_h_y_lower(i, j)*x(i-l+1, j) - a_h_y_upper(i, j)*x(i+l-1, j) &
@@ -254,9 +270,7 @@ program mpi_sor_3d_2_widely_allocated
 
 100 format(2i4, X, f10.8)
 
-  ! write(*, *) "myrank = ", myrank, " I finished execution on this node."
+end program mpi_sor_3d_2_red_black
 
-end program mpi_sor_3d_2_widely_allocated
-
-! 2015/03/31
+! 2015/05/08
 ! written by Shu OGAWARA
