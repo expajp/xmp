@@ -67,11 +67,22 @@ program xmp_sor_3d_2
   a_diag = -2.0d0*((1.0d0/h_x**2)+(1.0d0/h_y**2)+(1.0d0/h_z**2))
 
   ! array指示文
+  !$xmp array on t
   a_h_x_upper = 0.0d0
+
+  !$xmp array on t
   a_h_y_upper = 0.0d0
+
+  !$xmp array on t
   a_h_z_upper = 0.0d0
+
+  !$xmp array on t
   a_h_x_lower = 0.0d0
+
+  !$xmp array on t
   a_h_y_lower = 0.0d0
+
+  !$xmp array on t
   a_h_z_lower = 0.0d0
 
   !$xmp loop on t(j)
@@ -90,13 +101,8 @@ program xmp_sor_3d_2
   end do
 
   ! right-hand side
-  ! array指示文
-  !$xmp loop on t(j)
-  do j = 1, n-1
-     do i = 1, sf
-        b(i, j) = 0.0d0
-     end do
-  end do
+  !$xmp array on t
+  b = 0.0d0
 
   coef_h_x = 0
   coef_h_y = 0
@@ -115,14 +121,11 @@ program xmp_sor_3d_2
   norm_x = 0.0d0
   x_buffer = 0.0d0
 
-  ! array指示文
-  !$xmp loop on t(j)
-  do j = 1, n-1
-     do i = 1, sf
-        x(i, j) = 0.0d0
-        x_old(i, j) = 0.0d0
-     end do
-  end do
+  !$xmp array on t
+  x = 0.0d0
+
+  !$xmp array on t
+  x_old = 0.0d0
 
   !$xmp task on p(1)
   write(*,*) "epsilon = ", epsilon
@@ -132,8 +135,8 @@ program xmp_sor_3d_2
   !$xmp reflect(x)
 
   do
-     ! x_old = x
-     ! arrayというかgmove?
+     
+     !x_old = x
      !$xmp loop on t(j)
      do j = 1, n-1
         do i = 1, sf
@@ -145,7 +148,6 @@ program xmp_sor_3d_2
      !$xmp loop on t(j)
      do j = 1, n-1
         do i = 1, sf
-
 
            x_buffer = b(i, j)
 
