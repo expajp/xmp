@@ -18,7 +18,7 @@ program sor_3d_2_red_black
   ! constants
   real(8), parameter :: epsilon = 1.000E-08
   real(8), parameter :: pi = acos(-1.0d0)
-  real(8), parameter :: omega = 1.5 ! it must be from (1, 2)
+  real(8), parameter :: omega = 1.8 ! it must be from (1, 2)
 
   real(8) :: region_x_length, region_y_length, region_z_length
   real(8) :: h_x, h_y, h_z
