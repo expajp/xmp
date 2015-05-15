@@ -4,6 +4,7 @@ program xmp_sor_3d_2_red_black
   ! mesh
   integer, parameter :: l = 100, m = 100, n = 129 ! 2^n 分割をしやすくするため
   integer, parameter :: sf = (l-1)*(m-1) ! sf:surface
+  integer, parameter :: bcast_from = n-1 ! bcast指示文の不具合対応
 
   ! region
   real(8), parameter :: region_x_lower=0.0d0, region_x_upper=1.0d0
@@ -116,7 +117,8 @@ program xmp_sor_3d_2_red_black
   norm_b = sqrt(norm_b)
   !$xmp end task
 
-  !$xmp bcast (norm_b) from p(*)
+  bcast_from = n-1
+  !$xmp bcast (norm_b) from t(bcast_from) on t(1:bcast_from)
 
   ! main loop
   count = 0
