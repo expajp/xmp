@@ -35,6 +35,11 @@ program sor_3d_2_red_black
   ! iteration
   integer :: i, j, count
 
+  ! variables for time measurement
+  integer(8) :: time0, time1, t_rate, t_max
+  real(8) :: tick, alltime
+
+
   ! initialization
 
   ! constants
@@ -91,14 +96,21 @@ program sor_3d_2_red_black
 
   x = 0.0d0
 
+  alltime = 0.0d0
+
+  call system_clock(time0, t_rate, t_max)
+  tick = 1.0d0/t_rate
+
   write(*,*) "epsilon = ", epsilon
+  write(*,*) "tick = ", tick
 
   do
-     
+     call system_clock(time0)
+
      ! calculate new vector
      do j = 1, n-1
 
-        do i = 1, sf!, 2
+        do i = 1, sf, 2
 
            x(i, j) = (b(i, j) &
                 - a_h_x_lower(i, j)*x(i-1, j) - a_h_x_upper(i, j)*x(i+1, j) &
@@ -108,15 +120,15 @@ program sor_3d_2_red_black
 
         end do
 
-!        do i = 2, sf, 2
+        do i = 2, sf, 2
 
- !          x(i, j) = (b(i, j) &
-  !              - a_h_x_lower(i, j)*x(i-1, j) - a_h_x_upper(i, j)*x(i+1, j) &
-   !             - a_h_y_lower(i, j)*x(i-l+1, j) - a_h_y_upper(i, j)*x(i+l-1, j) &
-    !            - a_h_z_lower(i, j)*x(i, j-1) - a_h_z_upper(i, j)*x(i, j+1) ) &
-     !           * (omega/a_diag) + (1-omega)*x(i, j)
+           x(i, j) = (b(i, j) &
+                - a_h_x_lower(i, j)*x(i-1, j) - a_h_x_upper(i, j)*x(i+1, j) &
+                - a_h_y_lower(i, j)*x(i-l+1, j) - a_h_y_upper(i, j)*x(i+l-1, j) &
+                - a_h_z_lower(i, j)*x(i, j-1) - a_h_z_upper(i, j)*x(i, j+1) ) &
+                * (omega/a_diag) + (1-omega)*x(i, j)
 
-      !  end do
+        end do
 
      end do
 
@@ -143,6 +155,14 @@ program sor_3d_2_red_black
      ! preparation of next iter
      count = count+1
 
+     call system_clock(time1)
+
+     if (time1 < time0) then
+        alltime = alltime + ((t_max-time0)+time1+1)/dble(t_rate)
+     else
+        alltime = alltime + (time1-time0)/dble(t_rate)
+     end if
+
      ! shinchoku dou desuka?
      write(*, '(i5, e15.5)') count, norm_diff/norm_b
 
@@ -158,6 +178,7 @@ program sor_3d_2_red_black
   ! output
   write(*, '(/,A,i6)') "iteration: ", count
   write(*, '(A, e15.5)') "norm_x = ", norm_x
+  write(*, '(A, f9.4, /)') "alltime = ", alltime
 
 100 format(2i4, X, f10.8)
 

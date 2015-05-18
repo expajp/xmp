@@ -37,9 +37,13 @@ program xmp_sor_3d_2_red_black
   integer :: i, j, count
 
   ! variables for XMP
+  real(8) :: xmp_wtime, xmp_wtick
   !integer :: myrank, nprocs
   !integer :: xmp_node_num, xmp_num_nodes
 
+  ! variables for time measurement
+  real(8) :: tick, time0, time1, time2, time3
+  real(8) :: caltime, comtime, alltime
 
   ! initialization
 
@@ -127,14 +131,24 @@ program xmp_sor_3d_2_red_black
   !$xmp array on t
   x = 0.0d0
 
+  tick = xmp_wtick()
+  caltime = 0.0d0
+  comtime = 0.0d0
+  alltime = 0.0d0
+
   !$xmp task on p(1)
-  write(*,*) "epsilon = ", epsilon
+  write(*,'(A,e15.5)') "epsilon = ", epsilon
+  write(*,'(A,e15.5)') "tick = ", tick
   !$xmp end task
 
   ! first sync, that is, initialize
   !$xmp reflect(x)
 
   do
+
+     !$xmp barrier
+     time0 = xmp_wtime()
+
      ! calculate new vector
 
      !$xmp loop on t(j)
@@ -160,9 +174,15 @@ program xmp_sor_3d_2_red_black
         end do
 
      end do
+
+     !$xmp barrier
+     time1 = xmp_wtime()
      
      ! message transfer
      !$xmp reflect(x)
+
+     !$xmp barrier
+     time2 = xmp_wtime()
 
      ! calculate norm
      !$xmp loop on t(j)
@@ -194,6 +214,13 @@ program xmp_sor_3d_2_red_black
      write(*, '(i5, e15.5)') count, norm_diff/norm_b
      !$xmp end task
 
+     !$xmp barrier
+     time3 = xmp_wtime()
+
+     caltime = caltime + (time1 - time0) + (time3 - time2)
+     comtime = comtime + (time2 - time1)
+     alltime = alltime + (time3 - time0)
+
      ! check convergence
      if(norm_diff <= epsilon*norm_b) exit
      
@@ -205,10 +232,13 @@ program xmp_sor_3d_2_red_black
 
   end do
 
+  !$xmp barrier
+
   ! output
   !$xmp task on t(1)
   write(*, '(/,A,i6)') "iteration: ", count
   write(*, '(A, e15.5)') "norm_x = ", norm_x
+  write(*, '(3(A, f9.4),/)') "caltime = ", caltime, ", comtime = ", comtime, ", alltime = ", alltime
   !$xmp end task
 
 100 format(2i4, X, f10.8)

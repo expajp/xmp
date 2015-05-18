@@ -26,7 +26,7 @@ program mpi_rbsor_3d_2
   real(8) :: h_x, h_y, h_z
 
   real(8) :: a_diag
-  real(8), dimension(:, :), allocatable :: x, x_old, x_diff ! object of calc
+  real(8), dimension(:, :), allocatable :: x, x_diff ! object of calc
   real(8), dimension(:, :), allocatable :: a_h_x_upper, a_h_y_upper, a_h_z_upper ! left-hand side
   real(8), dimension(:, :), allocatable :: a_h_x_lower, a_h_y_lower, a_h_z_lower ! left-hand side
   real(8), dimension(:, :), allocatable :: b ! right_hand side
@@ -45,6 +45,9 @@ program mpi_rbsor_3d_2
   integer :: start, goal
   integer :: leftnode, rightnode
 
+  ! variables for time measurement
+  real(8) :: tick, time0, time1, time2, time3
+  real(8) :: caltime, comtime, alltime
 
   ! initialization
 
@@ -80,7 +83,6 @@ program mpi_rbsor_3d_2
   
   ! matrix
   allocate(x(-l+2:sf+l-1, start-1:goal+1))
-  allocate(x_old(sf, start:goal))
   allocate(x_diff(sf, start:goal))
 
   allocate(a_h_x_upper(sf, start:goal))
@@ -147,20 +149,25 @@ program mpi_rbsor_3d_2
   norm_x_local = 0.0d0
 
   x = 0.0d0
-  x_old = 0.0d0
 
-  if(myrank == 0) write(*,*) "epsilon = ", epsilon
+  tick = mpi_wtick()
+  caltime = 0.0d0
+  comtime = 0.0d0
+  alltime = 0.0d0
+
+
+  if(myrank == 0) then 
+     write(*,'(A,e15.5)') "epsilon = ", epsilon
+     write(*,'(A,e15.5)') "tick = ", tick
+  end if
+
+  ! you don't need sync for the first sequence
 
   do
-     ! x_old = x
-     do j = start, goal
-        do i = 1, sf
-           x_old(i, j) = x(i, j)
-        end do
-     end do
 
+     call mpi_barrier(MPI_COMM_WORLD, ierr)
+     time0 = mpi_wtime()
 
-     ! you don't need sync for the first sequence
      ! calculate new vector
      do j = start, goal
 
@@ -182,6 +189,9 @@ program mpi_rbsor_3d_2
 
      end do
 
+     call mpi_barrier(MPI_COMM_WORLD, ierr)
+     time1 = mpi_wtime()
+
      ! message transfer
      ! start must be an odd number and computed
      call mpi_sendrecv(x(1, start), sf, MPI_REAL8, leftnode, 100, &
@@ -193,6 +203,9 @@ program mpi_rbsor_3d_2
      call mpi_sendrecv(x(1, goal), sf, MPI_REAL8, rightnode, 100, &
           x(1, start-1), sf, MPI_REAL8, leftnode, 100, &
           MPI_COMM_WORLD, istat, ierr)
+
+     call mpi_barrier(MPI_COMM_WORLD, ierr)
+     time2 = mpi_wtime()
 
      ! calculate norm
      do j = start, goal
@@ -226,6 +239,13 @@ program mpi_rbsor_3d_2
         write(*, '(i5, e15.5)') count, norm_diff/norm_b
      end if
 
+     call mpi_barrier(MPI_COMM_WORLD, ierr)
+     time3 = mpi_wtime()
+
+     caltime = caltime + (time1 - time0) + (time3 - time2)
+     comtime = comtime + (time2 - time1)
+     alltime = alltime + (time3 - time0)
+
      ! check convergence
      if(norm_diff <= epsilon*norm_b) exit
      
@@ -240,6 +260,7 @@ program mpi_rbsor_3d_2
   end do
 
   call mpi_barrier(MPI_COMM_WORLD, ierr)
+  time1 = mpi_wtime()
 
   ! compare with analysed answer here
   ! write(*, *) "difference from analysis solution: ", diff
@@ -248,6 +269,7 @@ program mpi_rbsor_3d_2
   if(myrank == 0) then
      write(*, '(/,A,i6)') "iteration: ", count
      write(*, '(A, e15.5)') "norm_x = ", norm_x
+     write(*, '(3(A, f9.4),/)') "caltime = ", caltime, ", comtime = ", comtime, ", alltime = ", alltime
   end if
 
   ! 仮想マシンではこれがないとエラーを吐く
