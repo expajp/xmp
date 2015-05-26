@@ -49,7 +49,7 @@
 ! Initializing matrixes
       call initmt(p,a,b,c,bnd,wrk1,wrk2)
 
-      if (myrank == 0) then
+      if (myrank == 1) then
          write(*,*) ' mimax=', mimax, ' mjmax=', mjmax, ' mkmax=', mkmax
          write(*,*) ' imax=', imax, ' jmax=', jmax, ' kmax=', kmax
       end if
@@ -57,7 +57,7 @@
 ! Start measuring
 
       nn = 3
-      if (myrank == 0) then
+      if (myrank == 1) then
          write(*,*) ' Start rehearsal measurement process.'
          write(*,*) ' Measure the performance in 3 times.'
       end if
@@ -71,7 +71,7 @@
       flop = real(kmax-2) * real(jmax-2) * real(imax-2) * 34.0 * real(nn)
       xmflops2 = flop / cpu * 1.0e-6
 
-      if (myrank == 0) then
+      if (myrank == 1) then
          write(*,*) '  MFLOPS:', xmflops2, '  time(s):', cpu, gosa
       end if
 
@@ -79,7 +79,7 @@
       nn = int(ttarget/(cpu/3.0))
 !$xmp reduction (max:nn)
 
-      if (myrank == 0) then
+      if (myrank == 1) then
          write(*,*) 'Now, start the actual measurement process.'
          write(*,*) 'The loop will be excuted in',nn,' times.'
          write(*,*) 'This will take about one minute.'
@@ -95,7 +95,7 @@
       flop = real(kmax-2) * real(jmax-2) * real(imax-2) * 34.0 * real(nn)
       xmflops2 = flop * 1.0e-6 / cpu
 
-      if (myrank == 0) then
+      if (myrank == 1) then
          write(*,*) ' Loop executed for ', nn, ' times'
          write(*,*) ' Gosa :', gosa
          write(*,*) ' MFLOPS:', xmflops2, '  time(s):', cpu
