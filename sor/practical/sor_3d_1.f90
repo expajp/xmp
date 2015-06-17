@@ -22,7 +22,7 @@ program sor_3d_1
   double precision, parameter :: omega = 2.0d0/(1+sqrt(1-cos(pi/n)**2)) ! it must be from (1, 2)
 
   ! denominator
-  ! double precision, parameter :: denomi = 1.0d0/(exp(pi)-exp(-pi))
+  double precision, parameter :: denomi = 1.0d0/sinh(sqrt(2.0d0)*pi)
 
   double precision :: region_x_length, region_y_length, region_z_length
   double precision :: h_x, h_y, h_z
@@ -40,10 +40,12 @@ program sor_3d_1
 
   ! the upper of region of b inserted border's value
   integer :: b_border_region
-  integer :: coef_h_x, coef_h_y
+  integer :: coef_h_x, coef_h_y, coef_h_z
 
   ! error check
-  double precision :: norm_diff, norm_x, norm_b 
+  double precision :: norm_diff, norm_x, norm_b, norm_analysis
+  double precision :: diff
+  double precision :: analysis_answer
 
   ! iteration
   integer :: i, j, count
@@ -89,6 +91,7 @@ program sor_3d_1
   norm_b = 0.0d0
   coef_h_x = 0
   coef_h_y = 0
+  coef_h_z = 0
 
   do i = b_border_region+1, mesh
      coef_h_x = mod(i-b_border_region-1,l-1) + 1
@@ -103,6 +106,8 @@ program sor_3d_1
   count = 0
   norm_diff = 0.0d0
   norm_x = 0.0d0
+  diff = 0.0d0
+  norm_analysis = 0.0d0
 
   x = 0.0d0
 
@@ -112,10 +117,6 @@ program sor_3d_1
 
   call system_clock(time0, t_rate, t_max)
   tick = 1.0d0/t_rate
-
-  write(*,*) "epsilon = ", epsilon
-  write(*,*) "omega = ", omega
-  write(*,*) "tick = ", tick
 
   do
      call system_clock(time0)
@@ -161,7 +162,7 @@ program sor_3d_1
      write(*, '(i5, e15.5)') count, norm_diff/norm_b
 
      ! check convergence
-     if(norm_diff <= epsilon*norm_x) exit
+     if(norm_diff <= epsilon*norm_b) exit
 
      ! preparation of next iteration
      norm_diff = 0.0d0
@@ -170,12 +171,31 @@ program sor_3d_1
   end do
 
   ! compare with analysed answer here
-  ! write(*, *) "difference from analysis solution: ", diff
+  do i = 1, mesh
+     coef_h_x = mod(i-1,l-1) + 1
+     coef_h_y = mod(i-1, sf)/(l-1) + 1
+     coef_h_z = (i-1)/sf + 1
+     analysis_answer = sin(pi*coef_h_x*h_x)*sin(pi*coef_h_y*h_y)*sinh(sqrt(2.0d0)*pi*coef_h_z*h_z)*denomi
+
+     norm_analysis = norm_analysis + analysis_answer**2
+
+     diff = diff + abs(x(i)-analysis_answer)
+  end do
+
+  norm_analysis = sqrt(norm_analysis)
 
   ! output
-  write(*, '(/,A,i6)') "iteration: ", count
-  write(*, '(A, e15.5)') "norm_x = ", norm_x
-  write(*, '(3(A, f9.4),/)') "caltime = ", caltime, ", comtime = ", comtime, ", alltime = ", alltime
+  write(*, '(/,A,i6,/)') "iteration: ", count
+
+  write(*,200) "epsilon = ", epsilon
+  write(*,200) "omega = ", omega
+  write(*,200) "tick = ", tick
+
+  write(*, '(/,2(A, e15.5))') "norm_x = ", norm_x, ", norm_analysis = ", norm_analysis
+  write(*, 200) "diff = ", diff
+
+  write(*, '(/,3(A, f9.4),/)') "caltime = ", caltime, ", comtime = ", comtime, ", alltime = ", alltime
+
 
   ! 仮想マシンではこれがないとエラーを吐く
   ! 逆に、piではこれがあるとここの部分で処理が止まって実行が終わらない
@@ -185,6 +205,7 @@ program sor_3d_1
   ! deallocate(b)
 
 100 format(2i4, X, f10.8)
+200 format(A, e15.5)
 
 end program sor_3d_1
 
