@@ -1,0 +1,36 @@
+
+MPI Program Information:
+========================
+Note: It is measured from MPI_Init till MPI_Finalize.
+      [U,R] specifies the Universe and the Process Rank in the Universe.
+
+
+Data of Process [0,0]:
+----------------------
+
+  Real Time (sec)             :             3.037437
+  User Time (sec)             :             3.008292
+  Sys  Time (sec)             :             0.004218
+  Vector Time (sec)           :             2.978475
+  Inst. Count                 :           1356049005
+  V. Inst. Count              :            655352396
+  V. Element Count            :         162780131769
+  V. Load Element Count       :          73879226953
+  FLOP Count                  :          81302565329
+  MOPS                        :         54343.404290
+  MFLOPS                      :         27026.154818
+  A. V. Length                :           248.385651
+  V. Op. Ratio (%)            :            99.571389
+  Total Memory Size    (MB)   :           384.031250
+    Memory Size        (MB)   :           256.031250
+    Global Memory Size (MB)   :           128.000000
+  MIPS                        :           450.770406
+  I-Cache (sec)               :             0.010740
+  O-Cache (sec)               :             0.007499
+  Bank Conflict Time
+    CPU Port Conf. (sec)      :             0.000033
+    Memory Network Conf. (sec):             1.175045
+  ADB Hit Element Ratio (%)   :            53.588490
+
+Start Time (date)    :  Fri May 22 11:40:38 JST 2015
+End   Time (date)    :  Fri May 22 11:40:41 JST 2015
