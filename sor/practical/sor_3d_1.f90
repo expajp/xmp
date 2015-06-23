@@ -51,9 +51,9 @@ program sor_3d_1
   integer :: i, j, count
 
   ! variables for time measurement
-  integer :: time0, time1, t_rate, t_max ! sequential
+  integer :: time0, time1, time2, t_rate, t_max ! sequential
   ! double precision :: time0, time1, time2, time3 ! parallel
-  double precision :: tick, caltime, comtime, alltime
+  double precision :: tick, caltime, comtime, checktime, alltime
 
 
   ! initialization
@@ -113,6 +113,7 @@ program sor_3d_1
 
   caltime = 0.0d0
   comtime = 0.0d0
+  checktime = 0.0d0
   alltime = 0.0d0
 
   call system_clock(time0, t_rate, t_max)
@@ -128,6 +129,8 @@ program sor_3d_1
                      - a_h_z_lower(i)*x(i-sf) - a_h_z_upper(i)*x(i+sf)) &
                 * (omega/a_diag) + (1-omega)*x(i)
      end do
+     
+     call system_clock(time1)
      
      ! calculate norm
      ! x_diff = x - x_old
@@ -150,12 +153,25 @@ program sor_3d_1
      count = count+1
 
      ! stop clock
-     call system_clock(time1)
+     call system_clock(time2)
+
+     ! calculate time
+     if (time2 < time0) then
+        alltime = alltime + ((t_max-time0)+time2+1)/dble(t_rate)
+     else
+        alltime = alltime + (time2-time0)/dble(t_rate)
+     end if
 
      if (time1 < time0) then
-        alltime = alltime + ((t_max-time0)+time1+1)/dble(t_rate)
+        caltime = caltime + ((t_max-time0)+time1+1)/dble(t_rate)
      else
-        alltime = alltime + (time1-time0)/dble(t_rate)
+        caltime = caltime + (time1-time0)/dble(t_rate)
+     end if
+
+     if (time2 < time1) then
+        checktime = checktime + ((t_max-time1)+time2+1)/dble(t_rate)
+     else
+        checktime = checktime + (time2-time1)/dble(t_rate)
      end if
 
      ! shinchoku dou desuka?
@@ -194,7 +210,8 @@ program sor_3d_1
   write(*, '(/,2(A, e15.5))') "norm_x = ", norm_x, ", norm_analysis = ", norm_analysis
   write(*, 200) "diff = ", diff
 
-  write(*, '(/,3(A, f9.4),/)') "caltime = ", caltime, ", comtime = ", comtime, ", alltime = ", alltime
+  write(*, '(/,3(A, f9.4))') "caltime = ", caltime, ", comtime = ", comtime, ", checktime = ", checktime
+  write(*, '((A, f9.4),/)') "alltime = ", alltime
 
 
   ! 仮想マシンではこれがないとエラーを吐く
