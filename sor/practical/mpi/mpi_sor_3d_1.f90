@@ -186,30 +186,21 @@ program mpi_sor_3d_1
      time0 = mpi_wtime()
 
      ! calculate new vector
-     do i = start, goal, 2
+     do i = start, goal
         x(i) = (b(i) - a_h_x_lower(i)*x(i-1) - a_h_x_upper(i)*x(i+1) &
                      - a_h_y_lower(i)*x(i-l+1) - a_h_y_upper(i)*x(i+l-1) &
                      - a_h_z_lower(i)*x(i-sf) - a_h_z_upper(i)*x(i+sf)) &
                 * (omega/a_diag) + (1-omega)*x(i)
      end do
+
+     call mpi_barrier(MPI_COMM_WORLD, ierr)
+     time1 = mpi_wtime()
 
      ! message transfer to left
      ! start must be an odd number and computed
      call mpi_sendrecv(x(start), sf, MPI_REAL8, leftnode, 100, &
           x(goal+1), sf, MPI_REAL8, rightnode, 100, &
           MPI_COMM_WORLD, istat, ierr)
-
-     ! calculate new vector
-     do i = start+1, goal, 2
-        x(i) = (b(i) - a_h_x_lower(i)*x(i-1) - a_h_x_upper(i)*x(i+1) &
-                     - a_h_y_lower(i)*x(i-l+1) - a_h_y_upper(i)*x(i+l-1) &
-                     - a_h_z_lower(i)*x(i-sf) - a_h_z_upper(i)*x(i+sf)) &
-                * (omega/a_diag) + (1-omega)*x(i)
-     end do
-
-     
-     call mpi_barrier(MPI_COMM_WORLD, ierr)
-     time1 = mpi_wtime()
 
      ! message transfer to right
      ! goal must be an even number and computed
