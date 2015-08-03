@@ -5,6 +5,7 @@ program wave_2
   integer, parameter :: N = 50, M = 100
   double precision, parameter :: dt = 1.0d0/M
   double precision, parameter :: dx = 1.0d0/N, dy = 1.0d0/N
+  double precision, parameter :: dt_dx = dt*N, dt_dy = dt*N
 
   ! set time
   double precision :: t = 0.0d0
@@ -51,13 +52,13 @@ program wave_2
 
      ! apply boundary condition on ...
      do j = 1, N-1
-        new_u(0, j) = 0.0d0 ! x = 0
-        new_u(N, j) = 0.0d0 ! x = 1
+        new_u(0, j) = u(0,j) + (u(1,j) - u(0,j))*dt_dx ! x = 0
+        new_u(N, j) = u(N,j) + (u(N,j) - u(N-1,j))*dt_dx ! x = 1
      end do
 
      do i = 1, N-1
-        new_u(i, 0) = 0.0d0 ! y = 0
-        new_u(i, N) = 0.0d0 ! y = 1
+        new_u(i, 0) = u(i,0) + (u(i,1) - u(i,0))*dt_dy ! y = 0
+        new_u(i, N) = u(i,N) + (u(i,N) - u(i,N-1))*dt_dx ! y = 1
      end do
 
      ! put t forward by 1-step
