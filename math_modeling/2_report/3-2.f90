@@ -53,12 +53,12 @@ program wave_2
      ! apply boundary condition on ...
      do j = 1, N-1
         new_u(0, j) = u(0,j) + (u(1,j) - u(0,j))*dt_dx ! x = 0
-        new_u(N, j) = u(N,j) + (u(N,j) - u(N-1,j))*dt_dx ! x = 1
+        new_u(N, j) = u(N,j) - (u(N,j) - u(N-1,j))*dt_dx ! x = 1
      end do
 
      do i = 1, N-1
         new_u(i, 0) = u(i,0) + (u(i,1) - u(i,0))*dt_dy ! y = 0
-        new_u(i, N) = u(i,N) + (u(i,N) - u(i,N-1))*dt_dx ! y = 1
+        new_u(i, N) = u(i,N) - (u(i,N) - u(i,N-1))*dt_dx ! y = 1
      end do
 
      ! put t forward by 1-step
