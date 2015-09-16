@@ -127,7 +127,7 @@ program xmp_sor_3d_2
   !$xmp end task   
 
   ! broadcast norm_b
-  !$xmp bcast(norm_b) from t(nprocs)
+  !$xmp bcast(norm_b) from p(nprocs)
 
   ! main loop
   count = 0
