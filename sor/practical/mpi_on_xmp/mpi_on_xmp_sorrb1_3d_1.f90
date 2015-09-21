@@ -1,9 +1,10 @@
-program mpi_on_xmp_sor4c1_3d_2
+program mpi_on_xmp_sorrb1_3d_1
   implicit none
   include 'mpif.h'
 
   ! mesh
   integer, parameter :: l = 100, m = 100, n = 129
+  integer, parameter :: mesh = (l-1)*(m-1)*(n-1)
   integer, parameter :: sf = (l-1)*(m-1) ! sf:surface
 
   ! region
@@ -29,17 +30,18 @@ program mpi_on_xmp_sor4c1_3d_2
   double precision :: h_x, h_y, h_z
 
   ! object of calc
-  double precision, dimension(:,:), allocatable :: x, x_diff
+  double precision, dimension(:), allocatable :: x, x_diff
 
   ! left-hand side
   double precision :: a_diag
-  double precision, dimension(:,:), allocatable :: a_h_x_upper, a_h_y_upper, a_h_z_upper
-  double precision, dimension(:,:), allocatable :: a_h_x_lower, a_h_y_lower, a_h_z_lower
+  double precision, dimension(:), allocatable :: a_h_x_upper, a_h_y_upper, a_h_z_upper
+  double precision, dimension(:), allocatable :: a_h_x_lower, a_h_y_lower, a_h_z_lower
 
   ! right_hand side
-  double precision, dimension(:,:), allocatable :: b
+  double precision, dimension(:), allocatable :: b
 
   ! the upper of region of b inserted border's value
+  integer :: b_border_region
   integer :: coef_h_x, coef_h_y, coef_h_z
 
   ! error check
@@ -56,10 +58,12 @@ program mpi_on_xmp_sor4c1_3d_2
   double precision :: time0, time1, time2, time3, time4, time5 ! parallel
   double precision :: tick, caltime, comtime, checktime, alltime
 
+
   ! variables for MPI
   integer :: myrank, nprocs, ierr
   integer, dimension(MPI_STATUS_SIZE) :: istat
   integer :: start, goal
+  integer :: nstart, ngoal
   integer :: leftnode, rightnode
 
 
@@ -70,8 +74,11 @@ program mpi_on_xmp_sor4c1_3d_2
   call mpi_comm_size(MPI_COMM_WORLD, nprocs, ierr)
   call mpi_comm_rank(MPI_COMM_WORLD, myrank, ierr)
 
-  start = (n-1)*myrank/nprocs+1
-  goal = (n-1)*(myrank+1)/nprocs
+  nstart = (n-1)*myrank/nprocs+1
+  ngoal = (n-1)*(myrank+1)/nprocs
+
+  start = (n-1)*myrank/nprocs*sf+1
+  goal = ngoal*sf
 
   if(myrank == 0) then
      leftnode = MPI_PROC_NULL
@@ -103,35 +110,33 @@ program mpi_on_xmp_sor4c1_3d_2
   a_h_z_lower = 0.0d0
 
   ! matrix
-  allocate(x(-l+2:sf+l-1, start-1:goal+1))
-  allocate(x_diff(sf, start:goal))
+  allocate(x(start-sf:goal+sf))
+  allocate(x_diff(start:goal))
 
-  allocate(a_h_x_upper(sf, start:goal))
-  allocate(a_h_y_upper(sf, start:goal))
-  allocate(a_h_z_upper(sf, start:goal))
-  allocate(a_h_x_lower(sf, start:goal))
-  allocate(a_h_y_lower(sf, start:goal))
-  allocate(a_h_z_lower(sf, start:goal))
+  allocate(a_h_x_upper(start:goal))
+  allocate(a_h_y_upper(start:goal))
+  allocate(a_h_z_upper(start:goal))
+  allocate(a_h_x_lower(start:goal))
+  allocate(a_h_y_lower(start:goal))
+  allocate(a_h_z_lower(start:goal))
 
-  allocate(b(sf, start:goal))
+  allocate(b(start:goal))
 
+  do i = start, goal
 
-  do j = start, goal
-     do i = 1, sf
+     if(mod(i,l-1) /= 0) a_h_x_upper(i) = 1.0d0/h_x**2
+     if(mod(i,sf) <= (l-1)*(m-2)) a_h_y_upper(i) = 1.0d0/h_y**2
+     if(i <= mesh-sf) a_h_z_upper(i) = 1.0d0/h_z**2
 
-        if(mod(i,l-1) /= 0) a_h_x_upper(i, j) = 1.0d0/h_x**2
-        if(i <= (l-1)*(m-2)) a_h_y_upper(i, j) = 1.0d0/h_y**2
-        if(j /= n-1) a_h_z_upper(i, j) = 1.0d0/h_z**2
+     if(mod(i,l-1) /= 1) a_h_x_lower(i) = 1.0d0/h_x**2
+     if(mod(i,sf) > l-1) a_h_y_lower(i) = 1.0d0/h_y**2
+     if(i > sf) a_h_z_lower(i) = 1.0d0/h_z**2
 
-        if(mod(i,l-1) /= 1) a_h_x_lower(i, j) = 1.0d0/h_x**2
-        if(i > l-1) a_h_y_lower(i, j) = 1.0d0/h_y**2
-        if(j /= 1) a_h_z_lower(i, j) = 1.0d0/h_z**2
-
-     end do
   end do
 
   ! right-hand side
   b = 0.0d0
+  b_border_region = mesh-sf
   norm_b = 0.0d0
   coef_h_x = 0
   coef_h_y = 0
@@ -139,11 +144,11 @@ program mpi_on_xmp_sor4c1_3d_2
 
   if(myrank == nprocs-1) then
 
-     do i = 1, sf
-        coef_h_x = mod(i-1,l-1) + 1
-        coef_h_y = (i-1)/(l-1) + 1
-        b(i, n-1) = -sin(coef_h_x*h_x*pi)*sin(coef_h_y*h_y*pi)/h_z**2
-        norm_b = norm_b + b(i, n-1)**2
+     do i = b_border_region+1, mesh
+        coef_h_x = mod(i-b_border_region-1,l-1) + 1
+        coef_h_y = (i-b_border_region-1)/(l-1) + 1
+        b(i) = -sin(coef_h_x*h_x*pi)*sin(coef_h_y*h_y*pi)/h_z**2
+        norm_b = norm_b + b(i)**2
      end do
 
      norm_b = sqrt(norm_b)
@@ -165,7 +170,9 @@ program mpi_on_xmp_sor4c1_3d_2
   diff_local = 0.0d0
   norm_analysis_local = 0.0d0
 
-  x = 0.0d0
+  do i = start-sf, goal+sf
+     x(i) = 0.0d0
+  end do
 
   caltime = 0.0d0
   comtime = 0.0d0
@@ -179,22 +186,11 @@ program mpi_on_xmp_sor4c1_3d_2
      time0 = mpi_wtime()
 
      ! calculate new vector
-     do j = start, goal, 2
-        do i = 1, sf, 2
-           x(i, j) = (b(i, j) &
-                - a_h_x_lower(i, j)*x(i-1, j) - a_h_x_upper(i, j)*x(i+1, j) &
-                - a_h_y_lower(i, j)*x(i-l+1, j) - a_h_y_upper(i, j)*x(i+l-1, j) &
-                - a_h_z_lower(i, j)*x(i, j-1) - a_h_z_upper(i, j)*x(i, j+1)) &
-                * (omega/a_diag) + (1-omega)*x(i, j)
-        end do
-
-        do i = 2, sf, 2
-           x(i, j) = (b(i, j) &
-                - a_h_x_lower(i, j)*x(i-1, j) - a_h_x_upper(i, j)*x(i+1, j) &
-                - a_h_y_lower(i, j)*x(i-l+1, j) - a_h_y_upper(i, j)*x(i+l-1, j) &
-                - a_h_z_lower(i, j)*x(i, j-1) - a_h_z_upper(i, j)*x(i, j+1)) &
-                * (omega/a_diag) + (1-omega)*x(i, j)
-        end do
+     do i = start, goal, 2
+        x(i) = (b(i) - a_h_x_lower(i)*x(i-1) - a_h_x_upper(i)*x(i+1) &
+                     - a_h_y_lower(i)*x(i-l+1) - a_h_y_upper(i)*x(i+l-1) &
+                     - a_h_z_lower(i)*x(i-sf) - a_h_z_upper(i)*x(i+sf)) &
+                * (omega/a_diag) + (1-omega)*x(i)
      end do
 
      call mpi_barrier(MPI_COMM_WORLD, ierr)
@@ -202,30 +198,19 @@ program mpi_on_xmp_sor4c1_3d_2
 
      ! message transfer to left
      ! start must be an odd number and computed
-     call mpi_sendrecv(x(1, start), sf, MPI_REAL8, leftnode, 100, &
-          x(1, goal+1), sf, MPI_REAL8, rightnode, 100, &
+     call mpi_sendrecv(x(start), sf, MPI_REAL8, leftnode, 100, &
+          x(goal+1), sf, MPI_REAL8, rightnode, 100, &
           MPI_COMM_WORLD, istat, ierr)
 
      call mpi_barrier(MPI_COMM_WORLD, ierr)
      time2 = mpi_wtime()
 
      ! calculate new vector
-     do j = start+1, goal, 2
-        do i = 1, sf, 2
-           x(i, j) = (b(i, j) &
-                - a_h_x_lower(i, j)*x(i-1, j) - a_h_x_upper(i, j)*x(i+1, j) &
-                - a_h_y_lower(i, j)*x(i-l+1, j) - a_h_y_upper(i, j)*x(i+l-1, j) &
-                - a_h_z_lower(i, j)*x(i, j-1) - a_h_z_upper(i, j)*x(i, j+1)) &
-                * (omega/a_diag) + (1-omega)*x(i, j)
-        end do
-
-        do i = 2, sf, 2
-           x(i, j) = (b(i, j) &
-                - a_h_x_lower(i, j)*x(i-1, j) - a_h_x_upper(i, j)*x(i+1, j) &
-                - a_h_y_lower(i, j)*x(i-l+1, j) - a_h_y_upper(i, j)*x(i+l-1, j) &
-                - a_h_z_lower(i, j)*x(i, j-1) - a_h_z_upper(i, j)*x(i, j+1)) &
-                * (omega/a_diag) + (1-omega)*x(i, j)
-        end do
+     do i = start+1, goal, 2
+        x(i) = (b(i) - a_h_x_lower(i)*x(i-1) - a_h_x_upper(i)*x(i+1) &
+                     - a_h_y_lower(i)*x(i-l+1) - a_h_y_upper(i)*x(i+l-1) &
+                     - a_h_z_lower(i)*x(i-sf) - a_h_z_upper(i)*x(i+sf)) &
+                * (omega/a_diag) + (1-omega)*x(i)
      end do
 
      call mpi_barrier(MPI_COMM_WORLD, ierr)
@@ -233,28 +218,24 @@ program mpi_on_xmp_sor4c1_3d_2
 
      ! message transfer to right
      ! goal must be an even number and computed
-     call mpi_sendrecv(x(1, goal), sf, MPI_REAL8, rightnode, 100, &
-          x(1, start-1), sf, MPI_REAL8, leftnode, 100, &
+     call mpi_sendrecv(x(goal-sf+1), sf, MPI_REAL8, rightnode, 100, &
+          x(start-sf), sf, MPI_REAL8, leftnode, 100, &
           MPI_COMM_WORLD, istat, ierr)
 
      call mpi_barrier(MPI_COMM_WORLD, ierr)
      time4 = mpi_wtime()
      
      ! calculate norm
-     do j = start, goal
-        do i = 1, sf
-           x_diff(i, j) = b(i, j) - a_diag*x(i, j) &
-                - a_h_x_lower(i, j)*x(i-1, j) - a_h_x_upper(i, j)*x(i+1, j) &
-                - a_h_y_lower(i, j)*x(i-l+1, j) - a_h_y_upper(i, j)*x(i+l-1, j) &
-                - a_h_z_lower(i, j)*x(i, j-1) - a_h_z_upper(i, j)*x(i, j+1)
-        end do
+     do i = start, goal
+        x_diff(i) = b(i) - a_diag*x(i) &
+                - a_h_x_lower(i)*x(i-1) - a_h_x_upper(i)*x(i+1) &
+                - a_h_y_lower(i)*x(i-l+1) - a_h_y_upper(i)*x(i+l-1) &
+                - a_h_z_lower(i)*x(i-sf) - a_h_z_upper(i)*x(i+sf)
      end do
 
-     do j = start, goal
-        do i = 1, sf
-           norm_diff_local = norm_diff_local + x_diff(i, j)**2
-           norm_x_local = norm_x_local + x(i, j)**2
-        end do
+     do i = start, goal
+        norm_diff_local = norm_diff_local + x_diff(i)**2
+        norm_x_local = norm_x_local + x(i)**2
      end do
 
      ! reduce norm_diff and norm_x
@@ -290,21 +271,19 @@ program mpi_on_xmp_sor4c1_3d_2
      norm_x_local = 0.0d0
      
      call mpi_barrier(MPI_COMM_WORLD, ierr)
-     
+
   end do
 
   ! compare with analysed answer here
-  do j = start, goal
-     do i = 1, sf
-        coef_h_x = mod(i-1,l-1) + 1
-        coef_h_y = (i-1)/(l-1) + 1
-        coef_h_z = j
-        analysis_answer = sin(pi*coef_h_x*h_x)*sin(pi*coef_h_y*h_y)*sinh(sqrt(2.0d0)*pi*coef_h_z*h_z)*denomi
+  do i = start, goal
+     coef_h_x = mod(i-1,l-1) + 1
+     coef_h_y = mod(i-1, sf)/(l-1) + 1
+     coef_h_z = (i-1)/sf + 1
+     analysis_answer = sin(pi*coef_h_x*h_x)*sin(pi*coef_h_y*h_y)*sinh(sqrt(2.0d0)*pi*coef_h_z*h_z)*denomi
 
-        norm_analysis_local = norm_analysis_local + analysis_answer**2
+     norm_analysis_local = norm_analysis_local + analysis_answer**2
 
-        diff_local = diff_local + abs(x(i, j)-analysis_answer)
-     end do
+     diff_local = diff_local + abs(x(i)-analysis_answer)
   end do
 
   call MPI_Allreduce(norm_analysis_local, norm_analysis, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
@@ -339,7 +318,7 @@ program mpi_on_xmp_sor4c1_3d_2
 100 format(2i4, X, f10.8)
 200 format(A, e15.5)
 
-end program mpi_on_xmp_sor4c1_3d_2
+end program mpi_on_xmp_sorrb1_3d_1
 
 ! 2015/09/22
 ! written by Shu OGAWARA

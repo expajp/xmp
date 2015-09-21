@@ -1,6 +1,6 @@
-program mpi_on_xmp_sor4c1_3d_2
+program mpi_on_xmp_sorrb2_3d_2
   implicit none
-  include 'mpif.h'
+  include "mpif.h"
 
   ! mesh
   integer, parameter :: l = 100, m = 100, n = 129
@@ -53,7 +53,7 @@ program mpi_on_xmp_sor4c1_3d_2
 
   ! variables for time measurement
   !integer :: time0, time1, time2, t_rate, t_max ! sequential
-  double precision :: time0, time1, time2, time3, time4, time5 ! parallel
+  double precision :: time0, time1, time2, time3 ! parallel
   double precision :: tick, caltime, comtime, checktime, alltime
 
   ! variables for MPI
@@ -179,7 +179,7 @@ program mpi_on_xmp_sor4c1_3d_2
      time0 = mpi_wtime()
 
      ! calculate new vector
-     do j = start, goal, 2
+     do j = start, goal
         do i = 1, sf, 2
            x(i, j) = (b(i, j) &
                 - a_h_x_lower(i, j)*x(i-1, j) - a_h_x_upper(i, j)*x(i+1, j) &
@@ -206,31 +206,6 @@ program mpi_on_xmp_sor4c1_3d_2
           x(1, goal+1), sf, MPI_REAL8, rightnode, 100, &
           MPI_COMM_WORLD, istat, ierr)
 
-     call mpi_barrier(MPI_COMM_WORLD, ierr)
-     time2 = mpi_wtime()
-
-     ! calculate new vector
-     do j = start+1, goal, 2
-        do i = 1, sf, 2
-           x(i, j) = (b(i, j) &
-                - a_h_x_lower(i, j)*x(i-1, j) - a_h_x_upper(i, j)*x(i+1, j) &
-                - a_h_y_lower(i, j)*x(i-l+1, j) - a_h_y_upper(i, j)*x(i+l-1, j) &
-                - a_h_z_lower(i, j)*x(i, j-1) - a_h_z_upper(i, j)*x(i, j+1)) &
-                * (omega/a_diag) + (1-omega)*x(i, j)
-        end do
-
-        do i = 2, sf, 2
-           x(i, j) = (b(i, j) &
-                - a_h_x_lower(i, j)*x(i-1, j) - a_h_x_upper(i, j)*x(i+1, j) &
-                - a_h_y_lower(i, j)*x(i-l+1, j) - a_h_y_upper(i, j)*x(i+l-1, j) &
-                - a_h_z_lower(i, j)*x(i, j-1) - a_h_z_upper(i, j)*x(i, j+1)) &
-                * (omega/a_diag) + (1-omega)*x(i, j)
-        end do
-     end do
-
-     call mpi_barrier(MPI_COMM_WORLD, ierr)
-     time3 = mpi_wtime()
-
      ! message transfer to right
      ! goal must be an even number and computed
      call mpi_sendrecv(x(1, goal), sf, MPI_REAL8, rightnode, 100, &
@@ -238,7 +213,7 @@ program mpi_on_xmp_sor4c1_3d_2
           MPI_COMM_WORLD, istat, ierr)
 
      call mpi_barrier(MPI_COMM_WORLD, ierr)
-     time4 = mpi_wtime()
+     time2 = mpi_wtime()
      
      ! calculate norm
      do j = start, goal
@@ -269,13 +244,13 @@ program mpi_on_xmp_sor4c1_3d_2
 
      ! stop clock
      call mpi_barrier(MPI_COMM_WORLD, ierr)
-     time5 = mpi_wtime()
+     time3 = mpi_wtime()
 
      ! calculate time
-     alltime = alltime + (time5-time0)
-     caltime = caltime + (time1-time0) + (time3-time2)
-     comtime = comtime + (time2-time1) + (time4-time3)
-     checktime = checktime + (time5-time4)
+     alltime = alltime + (time3-time0)
+     caltime = caltime + (time1-time0)
+     comtime = comtime + (time2-time1)
+     checktime = checktime + (time3-time2)
 
      ! shinchoku dou desuka?
      if(myrank == 0) write(*, '(i5, e15.5)') count, norm_diff/norm_b
@@ -339,7 +314,7 @@ program mpi_on_xmp_sor4c1_3d_2
 100 format(2i4, X, f10.8)
 200 format(A, e15.5)
 
-end program mpi_on_xmp_sor4c1_3d_2
+end program mpi_on_xmp_sorrb2_3d_2
 
 ! 2015/09/22
 ! written by Shu OGAWARA
