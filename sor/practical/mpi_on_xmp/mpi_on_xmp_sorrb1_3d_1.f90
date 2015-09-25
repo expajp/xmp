@@ -21,7 +21,7 @@ program mpi_on_xmp_sorrb1_3d_1
   double precision, parameter :: epsilon = 1.000E-08
   double precision, parameter :: pi = acos(-1.0d0)
   !double precision, parameter :: omega = 2.0d0/(1+sqrt(1-cos(pi/n)**2)) ! it must be from (1, 2)
-  double precision, parameter :: omega = 1.9d0
+  double precision, parameter :: omega = 1.8d0
 
   ! denominator
   double precision, parameter :: denomi = 1.0d0/sinh(sqrt(2.0d0)*pi)
