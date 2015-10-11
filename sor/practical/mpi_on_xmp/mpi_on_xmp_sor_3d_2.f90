@@ -7,54 +7,58 @@ program mpi_on_xmp_sor_3d_2
   integer, parameter :: sf = (l-1)*(m-1) ! sf:surface
 
   ! region
-  double precision, parameter :: region_x_lower=0.0d0, region_x_upper=1.0d0
-  double precision, parameter :: region_y_lower=0.0d0, region_y_upper=1.0d0
-  double precision, parameter :: region_z_lower=0.0d0, region_z_upper=1.0d0
+  real(8), parameter :: region_x_lower=0.0d0, region_x_upper=1.0d0
+  real(8), parameter :: region_y_lower=0.0d0, region_y_upper=1.0d0
+  real(8), parameter :: region_z_lower=0.0d0, region_z_upper=1.0d0
 
   ! border
-  double precision, parameter :: border_x_lower=0.0d0, border_x_upper=0.0d0
-  double precision, parameter :: border_y_lower=0.0d0, border_y_upper=0.0d0
-  double precision, parameter :: border_z_lower=0.0d0 ! border_z_upper=sin(pi*x)sin(pi*y)
+  real(8), parameter :: border_x_lower=0.0d0, border_x_upper=0.0d0
+  real(8), parameter :: border_y_lower=0.0d0, border_y_upper=0.0d0
+  real(8), parameter :: border_z_lower=0.0d0 ! border_z_upper=sin(pi*x)sin(pi*y)
 
   ! constants
-  double precision, parameter :: epsilon = 1.000E-08
-  double precision, parameter :: pi = acos(-1.0d0)
-  !double precision, parameter :: omega = 2.0d0/(1+sqrt(1-cos(pi/n)**2)) ! it must be from (1, 2)
-  double precision, parameter :: omega = 1.8d0
+  real(8), parameter :: epsilon = 1.000E-08
+  real(8), parameter :: pi = acos(-1.0d0)
+  !real(8), parameter :: omega = 2.0d0/(1+sqrt(1-cos(pi/n)**2)) ! it must be from (1, 2)
+  real(8), parameter :: omega = 1.8d0
 
   ! denominator
-  double precision, parameter :: denomi = 1.0d0/sinh(sqrt(2.0d0)*pi)
+  real(8), parameter :: denomi = 1.0d0/sinh(sqrt(2.0d0)*pi)
 
-  double precision :: region_x_length, region_y_length, region_z_length
-  double precision :: h_x, h_y, h_z
+  real(8) :: region_x_length, region_y_length, region_z_length
+  real(8) :: h_x, h_y, h_z
 
   ! object of calc
-  double precision, dimension(:,:), allocatable :: x, x_diff
+  real(8) :: x(sf, n-1), x_diff(sf, n-1)
 
   ! left-hand side
-  double precision :: a_diag
-  double precision, dimension(:,:), allocatable :: a_h_x_upper, a_h_y_upper, a_h_z_upper
-  double precision, dimension(:,:), allocatable :: a_h_x_lower, a_h_y_lower, a_h_z_lower
+  real(8) :: a_diag
+  real(8) :: a_h_x_upper(sf, n-1), a_h_y_upper(sf, n-1), a_h_z_upper(sf, n-1)
+  real(8) :: a_h_x_lower(sf, n-1), a_h_y_lower(sf, n-1), a_h_z_lower(sf, n-1)
 
   ! right_hand side
-  double precision, dimension(:,:), allocatable :: b
+  real(8) :: b(sf, n-1)
 
   ! the upper of region of b inserted border's value
   integer :: coef_h_x, coef_h_y, coef_h_z
 
   ! error check
-  double precision :: norm_diff, norm_x, norm_b, norm_analysis
-  double precision :: norm_diff_local, norm_x_local, norm_analysis_local
-  double precision :: diff, diff_local
-  double precision :: analysis_answer
+  real(8) :: norm_diff, norm_x, norm_b
+  real(8) :: norm_analysis
+  real(8) :: diff
+  real(8) :: analysis_answer
 
   ! iteration
   integer :: i, j, count
 
   ! variables for time measurement
   !integer :: time0, time1, time2, t_rate, t_max ! sequential
-  double precision :: time0, time1, time2, time3 ! parallel
-  double precision :: tick, caltime, comtime, checktime, alltime
+  real(8) :: time0, time1, time2, time3 ! parallel
+  real(8) :: tick, caltime, comtime, checktime, alltime
+
+  ! variables for XMP
+  integer :: xmp_node_num, xmp_num_nodes
+  real(8) :: xmp_wtick, xmp_wtime
 
   ! variables for MPI
   integer :: myrank, nprocs, ierr
@@ -65,10 +69,19 @@ program mpi_on_xmp_sor_3d_2
 
   ! initialization
 
-  ! MPI
+  ! xmp
+  !$xmp nodes p(*)
+  !$xmp template t(n-1)
+  !$xmp distribute t(block) onto p
+  !$xmp align(*, k) with t(k) :: x, x_diff, b
+  !$xmp align(*, k) with t(k) :: a_h_x_upper, a_h_y_upper, a_h_z_upper
+  !$xmp align(*, k) with t(k) :: a_h_x_lower, a_h_y_lower, a_h_z_lower
+  !$xmp shadow x(0, 1)
+
   call xmp_init_mpi()
-  call mpi_comm_size(MPI_COMM_WORLD, nprocs, ierr)
-  call mpi_comm_rank(MPI_COMM_WORLD, myrank, ierr)
+
+  myrank = xmp_node_num()-1
+  nprocs = xmp_num_nodes()
 
   start = (n-1)*myrank/nprocs+1
   goal = (n-1)*(myrank+1)/nprocs
@@ -102,21 +115,8 @@ program mpi_on_xmp_sor_3d_2
   a_h_y_lower = 0.0d0
   a_h_z_lower = 0.0d0
 
-  ! matrix
-  allocate(x(-l+2:sf+l-1, start-1:goal+1))
-  allocate(x_diff(sf, start:goal))
-
-  allocate(a_h_x_upper(sf, start:goal))
-  allocate(a_h_y_upper(sf, start:goal))
-  allocate(a_h_z_upper(sf, start:goal))
-  allocate(a_h_x_lower(sf, start:goal))
-  allocate(a_h_y_lower(sf, start:goal))
-  allocate(a_h_z_lower(sf, start:goal))
-
-  allocate(b(sf, start:goal))
-
-
-  do j = start, goal
+  !$xmp loop on t(j)
+  do j = 1, n-1
      do i = 1, sf
 
         if(mod(i,l-1) /= 0) a_h_x_upper(i, j) = 1.0d0/h_x**2
@@ -137,21 +137,21 @@ program mpi_on_xmp_sor_3d_2
   coef_h_y = 0
   coef_h_z = 0
 
-  if(myrank == nprocs-1) then
+  !$xmp task on p(nprocs)
+  
+  do i = 1, sf
+     coef_h_x = mod(i-1,l-1) + 1
+     coef_h_y = (i-1)/(l-1) + 1
+     b(i, n-1) = -sin(coef_h_x*h_x*pi)*sin(coef_h_y*h_y*pi)/h_z**2
+     norm_b = norm_b + b(i, n-1)**2
+  end do
 
-     do i = 1, sf
-        coef_h_x = mod(i-1,l-1) + 1
-        coef_h_y = (i-1)/(l-1) + 1
-        b(i, n-1) = -sin(coef_h_x*h_x*pi)*sin(coef_h_y*h_y*pi)/h_z**2
-        norm_b = norm_b + b(i, n-1)**2
-     end do
+  norm_b = sqrt(norm_b)
 
-     norm_b = sqrt(norm_b)
-
-  end if
+  !$xmp end task   
 
   ! broadcast norm_b
-  call mpi_bcast(norm_b, 1, MPI_REAL8, nprocs-1, MPI_COMM_WORLD, ierr)
+  !$xmp bcast(norm_b) from p(nprocs)
 
   ! main loop
   count = 0
@@ -160,11 +160,6 @@ program mpi_on_xmp_sor_3d_2
   diff = 0.0d0
   norm_analysis = 0.0d0
 
-  norm_diff_local = 0.0d0
-  norm_x_local = 0.0d0
-  diff_local = 0.0d0
-  norm_analysis_local = 0.0d0
-
   x = 0.0d0
 
   caltime = 0.0d0
@@ -172,14 +167,15 @@ program mpi_on_xmp_sor_3d_2
   checktime = 0.0d0
   alltime = 0.0d0
 
-  tick = mpi_wtick()
+  tick = xmp_wtick()
 
   do
-     call mpi_barrier(MPI_COMM_WORLD, ierr)
-     time0 = mpi_wtime()
+     !$xmp barrier
+     time0 = xmp_wtime()
 
      ! calculate new vector
-     do j = start, goal
+     !$xmp loop on t(j)
+     do j = 1, n-1
         do i = 1, sf
            x(i, j) = (b(i, j) &
                 - a_h_x_lower(i, j)*x(i-1, j) - a_h_x_upper(i, j)*x(i+1, j) &
@@ -189,8 +185,8 @@ program mpi_on_xmp_sor_3d_2
         end do
      end do
 
-     call mpi_barrier(MPI_COMM_WORLD, ierr)
-     time1 = mpi_wtime()
+     !$xmp barrier
+     time1 = xmp_wtime()
 
      ! message transfer to left
      ! start must be an odd number and computed
@@ -204,11 +200,12 @@ program mpi_on_xmp_sor_3d_2
           x(1, start-1), sf, MPI_REAL8, leftnode, 100, &
           MPI_COMM_WORLD, istat, ierr)
 
-     call mpi_barrier(MPI_COMM_WORLD, ierr)
-     time2 = mpi_wtime()
+     !$xmp barrier
+     time2 = xmp_wtime()
      
      ! calculate norm
-     do j = start, goal
+     !$xmp loop on t(j)
+     do j = 1, n-1
         do i = 1, sf
            x_diff(i, j) = b(i, j) - a_diag*x(i, j) &
                 - a_h_x_lower(i, j)*x(i-1, j) - a_h_x_upper(i, j)*x(i+1, j) &
@@ -217,16 +214,15 @@ program mpi_on_xmp_sor_3d_2
         end do
      end do
 
-     do j = start, goal
+     !$xmp loop on t(j) reduction( + : norm_diff, norm_x )
+     do j = 1, n-1
         do i = 1, sf
-           norm_diff_local = norm_diff_local + x_diff(i, j)**2
-           norm_x_local = norm_x_local + x(i, j)**2
+           norm_diff = norm_diff + x_diff(i, j)**2
+           norm_x = norm_x + x(i, j)**2
         end do
      end do
 
      ! reduce norm_diff and norm_x
-     call MPI_Allreduce(norm_diff_local, norm_diff, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
-     call MPI_Allreduce(norm_x_local, norm_x, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
 
      norm_diff = sqrt(norm_diff)
      norm_x = sqrt(norm_x)
@@ -235,8 +231,8 @@ program mpi_on_xmp_sor_3d_2
      count = count+1
 
      ! stop clock
-     call mpi_barrier(MPI_COMM_WORLD, ierr)
-     time3 = mpi_wtime()
+     !$xmp barrier
+     time3 = xmp_wtime()
 
      ! calculate time
      alltime = alltime + (time3-time0)
@@ -245,7 +241,9 @@ program mpi_on_xmp_sor_3d_2
      checktime = checktime + (time3-time2)
 
      ! shinchoku dou desuka?
-     if(myrank == 0) write(*, '(i5, e15.5)') count, norm_diff/norm_b
+     !$xmp task on p(1)
+     write(*, '(i5, e15.5)') count, norm_diff/norm_b
+     !$xmp end task
 
      ! check convergence
      if(norm_diff <= epsilon*norm_b) exit
@@ -253,34 +251,31 @@ program mpi_on_xmp_sor_3d_2
      ! preparation of next iteration
      norm_diff = 0.0d0
      norm_x = 0.0d0
-     norm_diff_local = 0.0d0
-     norm_x_local = 0.0d0
      
-     call mpi_barrier(MPI_COMM_WORLD, ierr)
+     !$xmp barrier
      
   end do
 
   ! compare with analysed answer here
-  do j = start, goal
+
+  !$xmp loop on t(j) reduction( + : norm_analysis, diff )
+  do j = 1, n-1
      do i = 1, sf
         coef_h_x = mod(i-1,l-1) + 1
         coef_h_y = (i-1)/(l-1) + 1
         coef_h_z = j
         analysis_answer = sin(pi*coef_h_x*h_x)*sin(pi*coef_h_y*h_y)*sinh(sqrt(2.0d0)*pi*coef_h_z*h_z)*denomi
 
-        norm_analysis_local = norm_analysis_local + analysis_answer**2
+        norm_analysis = norm_analysis + analysis_answer**2
 
-        diff_local = diff_local + abs(x(i, j)-analysis_answer)
+        diff = diff + abs(x(i, j)-analysis_answer)
      end do
   end do
-
-  call MPI_Allreduce(norm_analysis_local, norm_analysis, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
-  call MPI_Allreduce(diff_local, diff, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
 
   norm_analysis = sqrt(norm_analysis)
 
   ! output
-  if(myrank == 0) then
+  !$xmp task on p(1)
      write(*, '(/,A,i6,/)') "iteration: ", count
 
      write(*, 200) "epsilon = ", epsilon
@@ -292,14 +287,14 @@ program mpi_on_xmp_sor_3d_2
 
      write(*, '(/,3(A, f9.4))') "caltime = ", caltime, ", comtime = ", comtime, ", checktime = ", checktime
      write(*, '((A, f9.4),/)') "alltime = ", alltime
-  end if
-
-  call xmp_finalize_mpi()
+  !$xmp end task
 
 100 format(2i4, X, f10.8)
 200 format(A, e15.5)
 
+  call xmp_finalize_mpi()
+
 end program mpi_on_xmp_sor_3d_2
 
-! 2015/09/24
+! 2015/10/11
 ! written by Shu OGAWARA
