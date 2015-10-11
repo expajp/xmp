@@ -19,8 +19,8 @@ program mpi_sor4c1_3d_2
   ! constants
   double precision, parameter :: epsilon = 1.000E-08
   double precision, parameter :: pi = acos(-1.0d0)
-  !double precision, parameter :: omega = 2.0d0/(1+sqrt(1-cos(pi/n)**2)) ! it must be from (1, 2)
-  double precision, parameter :: omega = 1.8d0
+  double precision, parameter :: omega = 2.0d0/(1+sqrt(1-cos(pi/n)**2)) ! it must be from (1, 2)
+  !double precision, parameter :: omega = 1.8d0
 
   ! denominator
   double precision, parameter :: denomi = 1.0d0/sinh(sqrt(2.0d0)*pi)
@@ -187,7 +187,9 @@ program mpi_sor4c1_3d_2
                 - a_h_z_lower(i, j)*x(i, j-1) - a_h_z_upper(i, j)*x(i, j+1)) &
                 * (omega/a_diag) + (1-omega)*x(i, j)
         end do
+     end do
 
+     do j = start, goal, 2
         do i = 2, sf, 2
            x(i, j) = (b(i, j) &
                 - a_h_x_lower(i, j)*x(i-1, j) - a_h_x_upper(i, j)*x(i+1, j) &
@@ -196,6 +198,7 @@ program mpi_sor4c1_3d_2
                 * (omega/a_diag) + (1-omega)*x(i, j)
         end do
      end do
+
 
      call mpi_barrier(MPI_COMM_WORLD, ierr)
      time1 = mpi_wtime()
@@ -218,7 +221,9 @@ program mpi_sor4c1_3d_2
                 - a_h_z_lower(i, j)*x(i, j-1) - a_h_z_upper(i, j)*x(i, j+1)) &
                 * (omega/a_diag) + (1-omega)*x(i, j)
         end do
+     end do
 
+     do j = start+1, goal, 2
         do i = 2, sf, 2
            x(i, j) = (b(i, j) &
                 - a_h_x_lower(i, j)*x(i-1, j) - a_h_x_upper(i, j)*x(i+1, j) &
@@ -227,6 +232,7 @@ program mpi_sor4c1_3d_2
                 * (omega/a_diag) + (1-omega)*x(i, j)
         end do
      end do
+
 
      call mpi_barrier(MPI_COMM_WORLD, ierr)
      time3 = mpi_wtime()

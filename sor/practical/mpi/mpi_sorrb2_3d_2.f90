@@ -19,8 +19,8 @@ program mpi_sorrb2_3d_2
   ! constants
   double precision, parameter :: epsilon = 1.000E-08
   double precision, parameter :: pi = acos(-1.0d0)
-  !double precision, parameter :: omega = 2.0d0/(1+sqrt(1-cos(pi/n)**2)) ! it must be from (1, 2)
-  double precision, parameter :: omega = 1.8d0
+  double precision, parameter :: omega = 2.0d0/(1+sqrt(1-cos(pi/n)**2)) ! it must be from (1, 2)
+  !double precision, parameter :: omega = 1.8d0
 
   ! denominator
   double precision, parameter :: denomi = 1.0d0/sinh(sqrt(2.0d0)*pi)
@@ -53,7 +53,7 @@ program mpi_sorrb2_3d_2
 
   ! variables for time measurement
   !integer :: time0, time1, time2, t_rate, t_max ! sequential
-  double precision :: time0, time1, time2, time3 ! parallel
+  double precision :: time0, time1, time2, time3, time4, time5 ! parallel
   double precision :: tick, caltime, comtime, checktime, alltime
 
   ! variables for MPI
@@ -179,7 +179,7 @@ program mpi_sorrb2_3d_2
      time0 = mpi_wtime()
 
      ! calculate new vector
-     do j = start, goal
+     do j = start, goal, 2
         do i = 1, sf, 2
            x(i, j) = (b(i, j) &
                 - a_h_x_lower(i, j)*x(i-1, j) - a_h_x_upper(i, j)*x(i+1, j) &
@@ -189,11 +189,11 @@ program mpi_sorrb2_3d_2
         end do
 
         do i = 2, sf, 2
-           x(i, j) = (b(i, j) &
-                - a_h_x_lower(i, j)*x(i-1, j) - a_h_x_upper(i, j)*x(i+1, j) &
-                - a_h_y_lower(i, j)*x(i-l+1, j) - a_h_y_upper(i, j)*x(i+l-1, j) &
-                - a_h_z_lower(i, j)*x(i, j-1) - a_h_z_upper(i, j)*x(i, j+1)) &
-                * (omega/a_diag) + (1-omega)*x(i, j)
+           x(i, j+1) = (b(i, j+1) &
+                - a_h_x_lower(i, j+1)*x(i-1, j+1) - a_h_x_upper(i, j+1)*x(i+1, j+1) &
+                - a_h_y_lower(i, j+1)*x(i-l+1, j+1) - a_h_y_upper(i, j+1)*x(i+l-1, j+1) &
+                - a_h_z_lower(i, j+1)*x(i, j) - a_h_z_upper(i, j+1)*x(i, j+2)) &
+                * (omega/a_diag) + (1-omega)*x(i, j+1)
         end do
      end do
 
@@ -214,6 +214,43 @@ program mpi_sorrb2_3d_2
 
      call mpi_barrier(MPI_COMM_WORLD, ierr)
      time2 = mpi_wtime()
+
+     ! calculate new vector
+     do j = start, goal, 2
+        do i = 2, sf, 2
+           x(i, j) = (b(i, j) &
+                - a_h_x_lower(i, j)*x(i-1, j) - a_h_x_upper(i, j)*x(i+1, j) &
+                - a_h_y_lower(i, j)*x(i-l+1, j) - a_h_y_upper(i, j)*x(i+l-1, j) &
+                - a_h_z_lower(i, j)*x(i, j-1) - a_h_z_upper(i, j)*x(i, j+1)) &
+                * (omega/a_diag) + (1-omega)*x(i, j)
+        end do
+
+        do i = 1, sf, 2
+           x(i, j+1) = (b(i, j+1) &
+                - a_h_x_lower(i, j+1)*x(i-1, j+1) - a_h_x_upper(i, j+1)*x(i+1, j+1) &
+                - a_h_y_lower(i, j+1)*x(i-l+1, j+1) - a_h_y_upper(i, j+1)*x(i+l-1, j+1) &
+                - a_h_z_lower(i, j+1)*x(i, j) - a_h_z_upper(i, j+1)*x(i, j+2)) &
+                * (omega/a_diag) + (1-omega)*x(i, j+1)
+        end do
+     end do
+
+     call mpi_barrier(MPI_COMM_WORLD, ierr)
+     time3 = mpi_wtime()
+
+     ! message transfer to left
+     ! start must be an odd number and computed
+     call mpi_sendrecv(x(1, start), sf, MPI_REAL8, leftnode, 100, &
+          x(1, goal+1), sf, MPI_REAL8, rightnode, 100, &
+          MPI_COMM_WORLD, istat, ierr)
+
+     ! message transfer to right
+     ! goal must be an even number and computed
+     call mpi_sendrecv(x(1, goal), sf, MPI_REAL8, rightnode, 100, &
+          x(1, start-1), sf, MPI_REAL8, leftnode, 100, &
+          MPI_COMM_WORLD, istat, ierr)
+
+     call mpi_barrier(MPI_COMM_WORLD, ierr)
+     time4 = mpi_wtime()
      
      ! calculate norm
      do j = start, goal
@@ -244,13 +281,13 @@ program mpi_sorrb2_3d_2
 
      ! stop clock
      call mpi_barrier(MPI_COMM_WORLD, ierr)
-     time3 = mpi_wtime()
+     time5 = mpi_wtime()
 
      ! calculate time
-     alltime = alltime + (time3-time0)
-     caltime = caltime + (time1-time0)
-     comtime = comtime + (time2-time1)
-     checktime = checktime + (time3-time2)
+     alltime = alltime + (time5-time0)
+     caltime = caltime + (time1-time0) + (time3-time2)
+     comtime = comtime + (time2-time1) + (time4-time3)
+     checktime = checktime + (time5-time4)
 
      ! shinchoku dou desuka?
      if(myrank == 0) write(*, '(i5, e15.5)') count, norm_diff/norm_b

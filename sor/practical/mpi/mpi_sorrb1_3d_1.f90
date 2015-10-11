@@ -20,8 +20,8 @@ program mpi_sorrb1_3d_1
   ! constants
   double precision, parameter :: epsilon = 1.000E-08
   double precision, parameter :: pi = acos(-1.0d0)
-  !double precision, parameter :: omega = 2.0d0/(1+sqrt(1-cos(pi/n)**2)) ! it must be from (1, 2)
-  double precision, parameter :: omega = 1.8d0
+  double precision, parameter :: omega = 2.0d0/(1+sqrt(1-cos(pi/n)**2)) ! it must be from (1, 2)
+  !double precision, parameter :: omega = 1.8d0
 
   ! denominator
   double precision, parameter :: denomi = 1.0d0/sinh(sqrt(2.0d0)*pi)
@@ -122,6 +122,7 @@ program mpi_sorrb1_3d_1
 
   allocate(b(start:goal))
 
+
   do i = start, goal
 
      if(mod(i,l-1) /= 0) a_h_x_upper(i) = 1.0d0/h_x**2
@@ -185,7 +186,7 @@ program mpi_sorrb1_3d_1
      call mpi_barrier(MPI_COMM_WORLD, ierr)
      time0 = mpi_wtime()
 
-     ! calculate new vector
+     ! calculate new vector in odd point
      do i = start, goal, 2
         x(i) = (b(i) - a_h_x_lower(i)*x(i-1) - a_h_x_upper(i)*x(i+1) &
                      - a_h_y_lower(i)*x(i-l+1) - a_h_y_upper(i)*x(i+l-1) &
@@ -202,6 +203,11 @@ program mpi_sorrb1_3d_1
           x(goal+1), sf, MPI_REAL8, rightnode, 100, &
           MPI_COMM_WORLD, istat, ierr)
 
+     call mpi_sendrecv(x(goal-sf+1), sf, MPI_REAL8, rightnode, 100, &
+          x(start-sf), sf, MPI_REAL8, leftnode, 100, &
+          MPI_COMM_WORLD, istat, ierr)
+
+
      call mpi_barrier(MPI_COMM_WORLD, ierr)
      time2 = mpi_wtime()
 
@@ -216,11 +222,16 @@ program mpi_sorrb1_3d_1
      call mpi_barrier(MPI_COMM_WORLD, ierr)
      time3 = mpi_wtime()
 
-     ! message transfer to right
-     ! goal must be an even number and computed
+     ! message transfer to left
+     ! start must be an odd number and computed
+     call mpi_sendrecv(x(start), sf, MPI_REAL8, leftnode, 100, &
+          x(goal+1), sf, MPI_REAL8, rightnode, 100, &
+          MPI_COMM_WORLD, istat, ierr)
+
      call mpi_sendrecv(x(goal-sf+1), sf, MPI_REAL8, rightnode, 100, &
           x(start-sf), sf, MPI_REAL8, leftnode, 100, &
           MPI_COMM_WORLD, istat, ierr)
+
 
      call mpi_barrier(MPI_COMM_WORLD, ierr)
      time4 = mpi_wtime()
