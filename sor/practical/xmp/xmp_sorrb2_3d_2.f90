@@ -18,8 +18,8 @@ program xmp_sorrb2_3d_2
   ! constants
   real(8), parameter :: epsilon = 1.000E-08
   real(8), parameter :: pi = acos(-1.0d0)
-  !real(8), parameter :: omega = 2.0d0/(1+sqrt(1-cos(pi/n)**2)) ! it must be from (1, 2)
-  real(8), parameter :: omega = 1.8d0
+  real(8), parameter :: omega = 2.0d0/(1+sqrt(1-cos(pi/n)**2)) ! it must be from (1, 2)
+  !real(8), parameter :: omega = 1.8d0
 
   ! denominator
   real(8), parameter :: denomi = 1.0d0/sinh(sqrt(2.0d0)*pi)
@@ -52,7 +52,7 @@ program xmp_sorrb2_3d_2
 
   ! variables for time measurement
   !integer :: time0, time1, time2, t_rate, t_max ! sequential
-  real(8) :: time0, time1, time2, time3 ! parallel
+  real(8) :: time0, time1, time2, time3, time4, time5 ! parallel
   real(8) :: tick, caltime, comtime, checktime, alltime
 
   ! variables for XMP
@@ -151,7 +151,7 @@ program xmp_sorrb2_3d_2
 
      ! calculate new vector
      !$xmp loop on t(j)
-     do j = 1, n-1
+     do j = 1, n-1, 2
         do i = 1, sf, 2
            x(i, j) = (b(i, j) &
                 - a_h_x_lower(i, j)*x(i-1, j) - a_h_x_upper(i, j)*x(i+1, j) &
@@ -161,11 +161,11 @@ program xmp_sorrb2_3d_2
         end do
 
         do i = 2, sf, 2
-           x(i, j) = (b(i, j) &
-                - a_h_x_lower(i, j)*x(i-1, j) - a_h_x_upper(i, j)*x(i+1, j) &
-                - a_h_y_lower(i, j)*x(i-l+1, j) - a_h_y_upper(i, j)*x(i+l-1, j) &
-                - a_h_z_lower(i, j)*x(i, j-1) - a_h_z_upper(i, j)*x(i, j+1)) &
-                * (omega/a_diag) + (1-omega)*x(i, j)
+           x(i, j+1) = (b(i, j+1) &
+                - a_h_x_lower(i, j+1)*x(i-1, j+1) - a_h_x_upper(i, j+1)*x(i+1, j+1) &
+                - a_h_y_lower(i, j+1)*x(i-l+1, j+1) - a_h_y_upper(i, j+1)*x(i+l-1, j+1) &
+                - a_h_z_lower(i, j+1)*x(i, j) - a_h_z_upper(i, j+1)*x(i, j+2)) &
+                * (omega/a_diag) + (1-omega)*x(i, j+1)
         end do
      end do
 
@@ -176,6 +176,35 @@ program xmp_sorrb2_3d_2
 
      !$xmp barrier
      time2 = xmp_wtime()
+
+     ! calculate new vector
+     !$xmp loop on t(j)
+     do j = 1, n-1, 2
+        do i = 2, sf, 2
+           x(i, j) = (b(i, j) &
+                - a_h_x_lower(i, j)*x(i-1, j) - a_h_x_upper(i, j)*x(i+1, j) &
+                - a_h_y_lower(i, j)*x(i-l+1, j) - a_h_y_upper(i, j)*x(i+l-1, j) &
+                - a_h_z_lower(i, j)*x(i, j-1) - a_h_z_upper(i, j)*x(i, j+1)) &
+                * (omega/a_diag) + (1-omega)*x(i, j)
+        end do
+
+        do i = 1, sf, 2
+           x(i, j+1) = (b(i, j+1) &
+                - a_h_x_lower(i, j+1)*x(i-1, j+1) - a_h_x_upper(i, j+1)*x(i+1, j+1) &
+                - a_h_y_lower(i, j+1)*x(i-l+1, j+1) - a_h_y_upper(i, j+1)*x(i+l-1, j+1) &
+                - a_h_z_lower(i, j+1)*x(i, j) - a_h_z_upper(i, j+1)*x(i, j+2)) &
+                * (omega/a_diag) + (1-omega)*x(i, j+1)
+        end do
+     end do
+
+     !$xmp barrier
+     time3 = xmp_wtime()
+
+     !$xmp reflect(x)
+
+     !$xmp barrier
+     time4 = xmp_wtime()
+
      
      ! calculate norm
      !$xmp loop on t(j)
@@ -206,13 +235,13 @@ program xmp_sorrb2_3d_2
 
      ! stop clock
      !$xmp barrier
-     time3 = xmp_wtime()
+     time5 = xmp_wtime()
 
      ! calculate time
-     alltime = alltime + (time3-time0)
-     caltime = caltime + (time1-time0)
-     comtime = comtime + (time2-time1)
-     checktime = checktime + (time3-time2)
+     alltime = alltime + (time5-time0)
+     caltime = caltime + (time1-time0) + (time3-time2)
+     comtime = comtime + (time2-time1) + (time4-time3)
+     checktime = checktime + (time5-time4)
 
      ! shinchoku dou desuka?
      !$xmp task on p(1)

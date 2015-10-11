@@ -18,8 +18,8 @@ program xmp_sor4c1_3d_2
   ! constants
   real(8), parameter :: epsilon = 1.000E-08
   real(8), parameter :: pi = acos(-1.0d0)
-  !real(8), parameter :: omega = 2.0d0/(1+sqrt(1-cos(pi/n)**2)) ! it must be from (1, 2)
-  real(8), parameter :: omega = 1.8d0
+  real(8), parameter :: omega = 2.0d0/(1+sqrt(1-cos(pi/n)**2)) ! it must be from (1, 2)
+  !real(8), parameter :: omega = 1.8d0
 
   ! denominator
   real(8), parameter :: denomi = 1.0d0/sinh(sqrt(2.0d0)*pi)
@@ -152,7 +152,6 @@ program xmp_sor4c1_3d_2
      ! calculate new vector
      !$xmp loop on t(j)
      do j = 1, n-1, 2
-
         do i = 1, sf, 2
            x(i, j) = (b(i, j) &
                 - a_h_x_lower(i, j)*x(i-1, j) - a_h_x_upper(i, j)*x(i+1, j) &
@@ -160,7 +159,10 @@ program xmp_sor4c1_3d_2
                 - a_h_z_lower(i, j)*x(i, j-1) - a_h_z_upper(i, j)*x(i, j+1)) &
                 * (omega/a_diag) + (1-omega)*x(i, j)
         end do
+     end do
 
+     !$xmp loop on t(j)
+     do j = 1, n-1, 2
         do i = 2, sf, 2
            x(i, j) = (b(i, j) &
                 - a_h_x_lower(i, j)*x(i-1, j) - a_h_x_upper(i, j)*x(i+1, j) &
@@ -168,8 +170,8 @@ program xmp_sor4c1_3d_2
                 - a_h_z_lower(i, j)*x(i, j-1) - a_h_z_upper(i, j)*x(i, j+1)) &
                 * (omega/a_diag) + (1-omega)*x(i, j)
         end do
-
      end do
+
 
      !$xmp barrier
      time1 = xmp_wtime()
@@ -181,7 +183,6 @@ program xmp_sor4c1_3d_2
 
      !$xmp loop on t(j)
      do j = 2, n-1, 2
-
         do i = 1, sf, 2
            x(i, j) = (b(i, j) &
                 - a_h_x_lower(i, j)*x(i-1, j) - a_h_x_upper(i, j)*x(i+1, j) &
@@ -189,7 +190,10 @@ program xmp_sor4c1_3d_2
                 - a_h_z_lower(i, j)*x(i, j-1) - a_h_z_upper(i, j)*x(i, j+1)) &
                 * (omega/a_diag) + (1-omega)*x(i, j)
         end do
+     end do
 
+     !$xmp loop on t(j)
+     do j = 2, n-1, 2
         do i = 2, sf, 2
            x(i, j) = (b(i, j) &
                 - a_h_x_lower(i, j)*x(i-1, j) - a_h_x_upper(i, j)*x(i+1, j) &
@@ -197,8 +201,8 @@ program xmp_sor4c1_3d_2
                 - a_h_z_lower(i, j)*x(i, j-1) - a_h_z_upper(i, j)*x(i, j+1)) &
                 * (omega/a_diag) + (1-omega)*x(i, j)
         end do
-
      end do
+
 
      !$xmp barrier
      time3 = xmp_wtime()
