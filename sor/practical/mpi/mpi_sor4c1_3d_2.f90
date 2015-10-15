@@ -19,8 +19,8 @@ program mpi_sor4c1_3d_2
   ! constants
   double precision, parameter :: epsilon = 1.000E-08
   double precision, parameter :: pi = acos(-1.0d0)
-  double precision, parameter :: omega = 2.0d0/(1+sqrt(1-cos(pi/n)**2)) ! it must be from (1, 2)
-  !double precision, parameter :: omega = 1.8d0
+  !double precision, parameter :: omega = 2.0d0/(1+sqrt(1-cos(pi/n)**2)) ! it must be from (1, 2)
+  double precision, parameter :: omega = 1.8d0
 
   ! denominator
   double precision, parameter :: denomi = 1.0d0/sinh(sqrt(2.0d0)*pi)
@@ -58,6 +58,7 @@ program mpi_sor4c1_3d_2
 
   ! variables for MPI
   integer :: myrank, nprocs, ierr
+  integer :: ireq_send, ireq_recv
   integer, dimension(MPI_STATUS_SIZE) :: istat
   integer :: start, goal
   integer :: leftnode, rightnode
@@ -203,11 +204,12 @@ program mpi_sor4c1_3d_2
      call mpi_barrier(MPI_COMM_WORLD, ierr)
      time1 = mpi_wtime()
 
-     ! message transfer to left
-     ! start must be an odd number and computed
-     call mpi_sendrecv(x(1, start), sf, MPI_REAL8, leftnode, 100, &
-          x(1, goal+1), sf, MPI_REAL8, rightnode, 100, &
-          MPI_COMM_WORLD, istat, ierr)
+     ! message transfer
+     call mpi_isend(x(1, start), sf, MPI_REAL8, leftnode, 100, MPI_COMM_WORLD, ireq_send, ierr)
+     call mpi_irecv(x(1, goal+1), sf, MPI_REAL8, rightnode, 100, MPI_COMM_WORLD, ireq_recv, ierr)
+
+     call mpi_wait(ireq_recv, istat, ierr)
+     call mpi_wait(ireq_send, istat, ierr)
 
      call mpi_barrier(MPI_COMM_WORLD, ierr)
      time2 = mpi_wtime()
@@ -237,11 +239,12 @@ program mpi_sor4c1_3d_2
      call mpi_barrier(MPI_COMM_WORLD, ierr)
      time3 = mpi_wtime()
 
-     ! message transfer to right
-     ! goal must be an even number and computed
-     call mpi_sendrecv(x(1, goal), sf, MPI_REAL8, rightnode, 100, &
-          x(1, start-1), sf, MPI_REAL8, leftnode, 100, &
-          MPI_COMM_WORLD, istat, ierr)
+     ! message transfer
+     call mpi_isend(x(1, goal), sf, MPI_REAL8, rightnode, 100, MPI_COMM_WORLD, ireq_send, ierr)
+     call mpi_irecv(x(1, start-1), sf, MPI_REAL8, leftnode, 100, MPI_COMM_WORLD, ireq_recv, ierr)
+
+     call mpi_wait(ireq_recv, istat, ierr)
+     call mpi_wait(ireq_send, istat, ierr)
 
      call mpi_barrier(MPI_COMM_WORLD, ierr)
      time4 = mpi_wtime()
