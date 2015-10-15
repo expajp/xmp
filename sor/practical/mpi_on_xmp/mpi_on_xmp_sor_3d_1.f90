@@ -63,6 +63,7 @@ program mpi_on_xmp_sor_3d_1
 
   ! variables for MPI
   integer :: myrank, nprocs, ierr
+  integer, dimension(2) :: ireq_send, ireq_recv
   integer, dimension(MPI_STATUS_SIZE) :: istat
   integer :: start, goal
   integer :: nstart, ngoal
@@ -195,17 +196,21 @@ program mpi_on_xmp_sor_3d_1
      !$xmp barrier
      time1 = xmp_wtime()
 
-     ! message transfer to left
-     ! start must be an odd number and computed
-     call mpi_sendrecv(x(start), sf, MPI_REAL8, leftnode, 100, &
-          x(goal+1), sf, MPI_REAL8, rightnode, 100, &
-          MPI_COMM_WORLD, istat, ierr)
+     ! message transfer
+     call mpi_isend(x(start), sf, MPI_REAL8, leftnode, 100, MPI_COMM_WORLD, ireq_send(1), ierr)
+     call mpi_isend(x(goal-sf+1), sf, MPI_REAL8, rightnode, 200, MPI_COMM_WORLD, ireq_send(2), ierr)
 
-     ! message transfer to right
-     ! goal must be an even number and computed
-     call mpi_sendrecv(x(goal-sf+1), sf, MPI_REAL8, rightnode, 100, &
-          x(start-sf), sf, MPI_REAL8, leftnode, 100, &
-          MPI_COMM_WORLD, istat, ierr)
+     call mpi_irecv(x(goal+1), sf, MPI_REAL8, rightnode, 100, MPI_COMM_WORLD, ireq_recv(1), ierr)
+     call mpi_irecv(x(start-sf), sf, MPI_REAL8, leftnode, 200, MPI_COMM_WORLD, ireq_recv(2), ierr)
+
+     ! 何故か動いてくれない
+     !call mpi_waitall(2, ireq_recv, istat, ierr)
+     !call mpi_waitall(2, ireq_send, istat, ierr)
+
+     call mpi_wait(ireq_recv(1), istat, ierr)
+     call mpi_wait(ireq_recv(2), istat, ierr)
+     call mpi_wait(ireq_send(1), istat, ierr)
+     call mpi_wait(ireq_send(2), istat, ierr)
 
      !$xmp barrier
      time2 = xmp_wtime()

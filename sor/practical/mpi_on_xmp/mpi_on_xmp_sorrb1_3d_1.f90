@@ -20,8 +20,8 @@ program mpi_on_xmp_sorrb1_3d_1
   ! constants
   real(8), parameter :: epsilon = 1.000E-08
   real(8), parameter :: pi = acos(-1.0d0)
-  real(8), parameter :: omega = 2.0d0/(1+sqrt(1-cos(pi/n)**2)) ! it must be from (1, 2)
-  !real(8), parameter :: omega = 1.8d0
+  !real(8), parameter :: omega = 2.0d0/(1+sqrt(1-cos(pi/n)**2)) ! it must be from (1, 2)
+  real(8), parameter :: omega = 1.8d0
 
   ! denominator
   real(8), parameter :: denomi = 1.0d0/sinh(sqrt(2.0d0)*pi)
@@ -63,6 +63,7 @@ program mpi_on_xmp_sorrb1_3d_1
 
   ! variables for MPI
   integer :: myrank, nprocs, ierr
+  integer, dimension(2) :: ireq_send, ireq_recv
   integer, dimension(MPI_STATUS_SIZE) :: istat
   integer :: start, goal
   integer :: nstart, ngoal
@@ -196,15 +197,21 @@ program mpi_on_xmp_sorrb1_3d_1
      !$xmp barrier
      time1 = xmp_wtime()
 
-     ! message transfer to left
-     ! start must be an odd number and computed
-     call mpi_sendrecv(x(start), sf, MPI_REAL8, leftnode, 100, &
-          x(goal+1), sf, MPI_REAL8, rightnode, 100, &
-          MPI_COMM_WORLD, istat, ierr)
+     ! message transfer
+     call mpi_isend(x(start), sf, MPI_REAL8, leftnode, 100, MPI_COMM_WORLD, ireq_send(1), ierr)
+     call mpi_isend(x(goal-sf+1), sf, MPI_REAL8, rightnode, 200, MPI_COMM_WORLD, ireq_send(2), ierr)
 
-     call mpi_sendrecv(x(goal-sf+1), sf, MPI_REAL8, rightnode, 100, &
-          x(start-sf), sf, MPI_REAL8, leftnode, 100, &
-          MPI_COMM_WORLD, istat, ierr)
+     call mpi_irecv(x(goal+1), sf, MPI_REAL8, rightnode, 100, MPI_COMM_WORLD, ireq_recv(1), ierr)
+     call mpi_irecv(x(start-sf), sf, MPI_REAL8, leftnode, 200, MPI_COMM_WORLD, ireq_recv(2), ierr)
+
+     ! 何故か動いてくれない
+     !call mpi_waitall(2, ireq_recv, istat, ierr)
+     !call mpi_waitall(2, ireq_send, istat, ierr)
+
+     call mpi_wait(ireq_recv(1), istat, ierr)
+     call mpi_wait(ireq_recv(2), istat, ierr)
+     call mpi_wait(ireq_send(1), istat, ierr)
+     call mpi_wait(ireq_send(2), istat, ierr)
 
      !$xmp barrier
      time2 = xmp_wtime()
@@ -221,15 +228,21 @@ program mpi_on_xmp_sorrb1_3d_1
      !$xmp barrier
      time3 = xmp_wtime()
 
-     ! message transfer to left
-     ! start must be an odd number and computed
-     call mpi_sendrecv(x(start), sf, MPI_REAL8, leftnode, 100, &
-          x(goal+1), sf, MPI_REAL8, rightnode, 100, &
-          MPI_COMM_WORLD, istat, ierr)
+     ! message transfer
+     call mpi_isend(x(start), sf, MPI_REAL8, leftnode, 100, MPI_COMM_WORLD, ireq_send(1), ierr)
+     call mpi_isend(x(goal-sf+1), sf, MPI_REAL8, rightnode, 200, MPI_COMM_WORLD, ireq_send(2), ierr)
 
-     call mpi_sendrecv(x(goal-sf+1), sf, MPI_REAL8, rightnode, 100, &
-          x(start-sf), sf, MPI_REAL8, leftnode, 100, &
-          MPI_COMM_WORLD, istat, ierr)
+     call mpi_irecv(x(goal+1), sf, MPI_REAL8, rightnode, 100, MPI_COMM_WORLD, ireq_recv(1), ierr)
+     call mpi_irecv(x(start-sf), sf, MPI_REAL8, leftnode, 200, MPI_COMM_WORLD, ireq_recv(2), ierr)
+
+     ! 何故か動いてくれない
+     !call mpi_waitall(2, ireq_recv, istat, ierr)
+     !call mpi_waitall(2, ireq_send, istat, ierr)
+
+     call mpi_wait(ireq_recv(1), istat, ierr)
+     call mpi_wait(ireq_recv(2), istat, ierr)
+     call mpi_wait(ireq_send(1), istat, ierr)
+     call mpi_wait(ireq_send(2), istat, ierr)
 
      !$xmp barrier
      time4 = xmp_wtime()
