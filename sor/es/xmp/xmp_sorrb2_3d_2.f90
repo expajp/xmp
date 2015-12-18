@@ -2,7 +2,7 @@ program xmp_sorrb2_3d_2
   implicit none
 
   ! mesh
-  integer, parameter :: l = 100, m = 100, n = 129
+  integer, parameter :: l = 1000, m = 1000, n = 129
   integer, parameter :: sf = (l-1)*(m-1) ! sf:surface
 
   ! region
