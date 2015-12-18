@@ -1,0 +1,158 @@
+
+MPI Program Information:
+========================
+Note: It is measured from MPI_Init till MPI_Finalize.
+      [U,R] specifies the Universe and the Process Rank in the Universe.
+
+Global Data of 4 processes  :          Min [U,R]          Max [U,R]      Average
+==========================
+
+Real Time (sec)             :       40.163 [0,0]       40.193 [0,1]       40.179
+User Time (sec)             :       38.110 [0,2]       40.091 [0,1]       39.104
+Sys  Time (sec)             :        0.044 [0,3]        0.045 [0,0]        0.044
+Vector Time (sec)           :        0.562 [0,2]        4.532 [0,0]        1.922
+Inst. Count                 :  26110546918 [0,0]  28661349348 [0,1]  27888194852
+V. Inst. Count              :     75192540 [0,2]    137052596 [0,0]     94754347
+V. Element Count            :  19175050488 [0,2]  20039653117 [0,0]  19418928155
+V. Load Element Count       :   8657513995 [0,3]   8958714494 [0,0]   8746875497
+FLOP Count                  :  12982856745 [0,0]  13386049098 [0,3]  13258804316
+MOPS                        :     1176.633 [0,0]     1245.536 [0,2]     1207.699
+MFLOPS                      :      331.993 [0,0]      349.864 [0,2]      339.176
+A. V. Length                :      146.219 [0,0]      255.013 [0,2]      215.659
+V. Op. Ratio (%)            :       40.205 [0,1]       43.552 [0,0]       41.152
+Total Memory Size    (MB)   :     4480.000 [0,0]     4480.000 [0,0]     4480.000
+  Memory Size        (MB)   :     4288.000 [0,0]     4288.000 [0,0]     4288.000
+  Global Memory Size (MB)   :      192.000 [0,0]      192.000 [0,0]      192.000
+MIPS                        :      667.690 [0,0]      744.353 [0,2]      713.371
+I-Cache (sec)               :        0.001 [0,3]        0.001 [0,0]        0.001
+O-Cache (sec)               :        2.414 [0,0]        3.181 [0,1]        2.622
+Bank Conflict Time
+  CPU Port Conf. (sec)      :        0.049 [0,0]        0.101 [0,2]        0.088
+  Memory Network Conf. (sec):        0.204 [0,2]        0.441 [0,0]        0.291
+ADB Hit Element Ratio (%)   :       23.600 [0,0]       24.430 [0,3]       24.177
+
+
+Overall Data:
+=============
+
+Real   Time (sec)           :       40.193
+User   Time (sec)           :      156.415
+System Time (sec)           :        0.177
+Vector Time (sec)           :        7.690
+Total GOPS                  :        4.831
+Total GFLOPS                :        1.357
+Total Memory Size    (GB)   :       17.500
+  Memory Size        (GB)   :       16.750
+  Global Memory Size (GB)   :        0.750
+
+
+Data of Process [0,0]:
+----------------------
+
+  Real Time (sec)             :            40.163164
+  User Time (sec)             :            39.105776
+  Sys  Time (sec)             :             0.044518
+  Vector Time (sec)           :             4.531506
+  Inst. Count                 :          26110546918
+  V. Inst. Count              :            137052596
+  V. Element Count            :          20039653117
+  V. Load Element Count       :           8958714494
+  FLOP Count                  :          12982856745
+  MOPS                        :          1176.633023
+  MFLOPS                      :           331.993329
+  A. V. Length                :           146.218705
+  V. Op. Ratio (%)            :            43.552016
+  Total Memory Size    (MB)   :          4480.000000
+    Memory Size        (MB)   :          4288.000000
+    Global Memory Size (MB)   :           192.000000
+  MIPS                        :           667.690290
+  I-Cache (sec)               :             0.000957
+  O-Cache (sec)               :             2.413833
+  Bank Conflict Time
+    CPU Port Conf. (sec)      :             0.048589
+    Memory Network Conf. (sec):             0.441415
+  ADB Hit Element Ratio (%)   :            23.599903
+
+Data of Process [0,1]:
+----------------------
+
+  Real Time (sec)             :            40.192737
+  User Time (sec)             :            40.090925
+  Sys  Time (sec)             :             0.044267
+  Vector Time (sec)           :             1.357024
+  Inst. Count                 :          28661349348
+  V. Inst. Count              :             84918859
+  V. Element Count            :          19214365662
+  V. Load Element Count       :           8695420349
+  FLOP Count                  :          13333155708
+  MOPS                        :          1192.060202
+  MFLOPS                      :           332.572913
+  A. V. Length                :           226.267356
+  V. Op. Ratio (%)            :            40.205159
+  Total Memory Size    (MB)   :          4480.000000
+    Memory Size        (MB)   :          4288.000000
+    Global Memory Size (MB)   :           192.000000
+  MIPS                        :           714.908657
+  I-Cache (sec)               :             0.000851
+  O-Cache (sec)               :             3.180550
+  Bank Conflict Time
+    CPU Port Conf. (sec)      :             0.101094
+    Memory Network Conf. (sec):             0.268740
+  ADB Hit Element Ratio (%)   :            24.312283
+
+Data of Process [0,2]:
+----------------------
+
+  Real Time (sec)             :            40.179466
+  User Time (sec)             :            38.109542
+  Sys  Time (sec)             :             0.044495
+  Vector Time (sec)           :             0.562223
+  Inst. Count                 :          28366961636
+  V. Inst. Count              :             75192540
+  V. Element Count            :          19175050488
+  V. Load Element Count       :           8675853150
+  FLOP Count                  :          13333155713
+  MOPS                        :          1245.536343
+  MFLOPS                      :           349.863971
+  A. V. Length                :           255.012671
+  V. Op. Ratio (%)            :            40.396746
+  Total Memory Size    (MB)   :          4480.000000
+    Memory Size        (MB)   :          4288.000000
+    Global Memory Size (MB)   :           192.000000
+  MIPS                        :           744.353255
+  I-Cache (sec)               :             0.000835
+  O-Cache (sec)               :             2.447477
+  Bank Conflict Time
+    CPU Port Conf. (sec)      :             0.101113
+    Memory Network Conf. (sec):             0.204465
+  ADB Hit Element Ratio (%)   :            24.367346
+
+Data of Process [0,3]:
+----------------------
+
+  Real Time (sec)             :            40.181455
+  User Time (sec)             :            39.109012
+  Sys  Time (sec)             :             0.043948
+  Vector Time (sec)           :             1.239173
+  Inst. Count                 :          28413921507
+  V. Inst. Count              :             81853393
+  V. Element Count            :          19246643354
+  V. Load Element Count       :           8657513995
+  FLOP Count                  :          13386049098
+  MOPS                        :          1216.566439
+  MFLOPS                      :           342.275307
+  A. V. Length                :           235.135559
+  V. Op. Ratio (%)            :            40.452216
+  Total Memory Size    (MB)   :          4480.000000
+    Memory Size        (MB)   :          4288.000000
+    Global Memory Size (MB)   :           192.000000
+  MIPS                        :           726.531305
+  I-Cache (sec)               :             0.000818
+  O-Cache (sec)               :             2.447525
+  Bank Conflict Time
+    CPU Port Conf. (sec)      :             0.101112
+    Memory Network Conf. (sec):             0.249314
+  ADB Hit Element Ratio (%)   :            24.430412
+
+Start Time (date)    :  Sat Dec 19 06:46:25 JST 2015
+End   Time (date)    :  Sat Dec 19 06:47:05 JST 2015
