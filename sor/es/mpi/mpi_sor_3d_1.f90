@@ -3,7 +3,7 @@ program mpi_sor_3d_1
   implicit none
 
   ! mesh
-  integer, parameter :: l = 100, m = 100, n = 129
+  integer, parameter :: l = 1000, m = 1000, n = 129
   integer, parameter :: mesh = (l-1)*(m-1)*(n-1)
   integer, parameter :: sf = (l-1)*(m-1) ! sf:surface
 
@@ -93,16 +93,6 @@ program mpi_sor_3d_1
      rightnode = myrank+1
   end if
 
-  ! constants
-  region_x_length = region_x_upper - region_x_lower ! = 1
-  region_y_length = region_y_upper - region_y_lower ! = 1
-  region_z_length = region_z_upper - region_z_lower ! = 1
-  h_x = (region_x_length)/l ! 1/l
-  h_y = (region_y_length)/m ! 1/m
-  h_z = (region_z_length)/n ! 1/n
-  pi = acos(-1.0d0)
-  denomi = 1.0d0/sinh(sqrt(2.0d0)*pi)
-  
   ! matrix
   allocate(x(start-sf:goal+sf))
   allocate(x_diff(start:goal))
@@ -116,6 +106,16 @@ program mpi_sor_3d_1
 
   allocate(b(start:goal))
 
+  ! constants
+  region_x_length = region_x_upper - region_x_lower ! = 1
+  region_y_length = region_y_upper - region_y_lower ! = 1
+  region_z_length = region_z_upper - region_z_lower ! = 1
+  h_x = (region_x_length)/l ! 1/l
+  h_y = (region_y_length)/m ! 1/m
+  h_z = (region_z_length)/n ! 1/n
+  pi = acos(-1.0d0)
+  denomi = 1.0d0/sinh(sqrt(2.0d0)*pi)
+  
   ! matrix
   a_diag = -2.0d0*((1.0d0/h_x**2)+(1.0d0/h_y**2)+(1.0d0/h_z**2))
   a_h_x_upper = 0.0d0
@@ -257,6 +257,7 @@ program mpi_sor_3d_1
 
      ! check convergence
      if(norm_diff <= epsilon*norm_b) exit
+     if(count >= 10) exit
 
      ! preparation of next iteration
      norm_diff = 0.0d0

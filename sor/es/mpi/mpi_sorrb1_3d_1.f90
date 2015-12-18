@@ -3,7 +3,7 @@ program mpi_sorrb1_3d_1
   implicit none
 
   ! mesh
-  integer, parameter :: l = 100, m = 100, n = 129
+  integer, parameter :: l = 1000, m = 1000, n = 129
   integer, parameter :: mesh = (l-1)*(m-1)*(n-1)
   integer, parameter :: sf = (l-1)*(m-1) ! sf:surface
 
@@ -287,6 +287,7 @@ program mpi_sorrb1_3d_1
 
      ! check convergence
      if(norm_diff <= epsilon*norm_b) exit
+     if(count >= 10) exit
 
      ! preparation of next iteration
      norm_diff = 0.0d0
